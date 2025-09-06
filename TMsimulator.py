@@ -122,11 +122,11 @@ class TuringTuple:
             current_char = expression[0]
             notation_end_char = expression[-1]
             if current_char.isalpha() != notation_end_char.isalpha():
-                errors.append((self.index, 'incompatible_dot_limiters'))
+                pars_errors.append((self.index, 'incompatible_dot_limiters'))
             elif not current_char.isalnum() or not notation_end_char.isalnum():
-                errors.append((self.index, 'symbol_dot_limiter'))
+                pars_errors.append((self.index, 'symbol_dot_limiter'))
             elif ord(current_char) > ord(notation_end_char):
-                errors.append((self.index, 'descending_order'))
+                pars_errors.append((self.index, 'descending_order'))
             elif current_char != '.' or notation_end_char != '.':
                 ord_current_char = ord(current_char)
                 ord_notation_end = ord(notation_end_char)
@@ -169,15 +169,15 @@ class TuringTuple:
         if class1_start_count == class1_end_count == 0 and class2_start_count == class2_end_count == 0:
             return [[input_string], 0]
         elif class1_start_count != class1_end_count or class2_start_count != class2_end_count:
-            errors.append((self.index, 'missing_class_limiters'))
+            pars_errors.append((self.index, 'missing_class_limiters'))
         elif class1_start_count > 1 or class1_end_count > 1 or class2_start_count > 1 or class2_end_count > 1:
-            errors.append((self.index, 'multiple_class'))
+            pars_errors.append((self.index, 'multiple_class'))
         class_string1 = self._find(input_string, '[', ']', '\\', '\\', start_included=False, end_included=False)
         class_string2 = self._find(input_string, '{', '}', '\\', '\\', start_included=False, end_included=False)
         if class_string1 and class_string2:
-            errors.append((self.index, 'multiple_class_types'))
+            pars_errors.append((self.index, 'multiple_class_types'))
         if input_string == '[]' or input_string == '{}':
-            errors.append((self.index, 'empty_class'))
+            pars_errors.append((self.index, 'empty_class'))
         class_type = 1 if class_string1 else 2
         class_string = class_string1 if class_string1 else class_string2
         class_start_index = input_string.find(class_string)
@@ -196,13 +196,13 @@ class TuringTuple:
             if self.string_tuple == "":
                 return [""]
             if self.string_tuple[0] != "(" and self.string_tuple[:2] != "!(":
-                errors.append((self.index, 'opening_char_missing'))
+                pars_errors.append((self.index, 'opening_char_missing'))
             if self.string_tuple[-1] != ")":
-                errors.append((self.index, 'closing_char_missing'))
+                pars_errors.append((self.index, 'closing_char_missing'))
             clean_tuple = self._find(self.string_tuple, "(", ")", "\\", "\\", start_included=False, end_included=False)
             split_tuple = self._split(clean_tuple, ",", "\\")
             if len(split_tuple) != 5:
-                errors.append((self.index, 'incorrect_arguments_amount'))
+                pars_errors.append((self.index, 'incorrect_arguments_amount'))
             split_tuple = [self._exclusion_expansion(self._double_dot_expansion(x)) for x in split_tuple]
             split_expanded_tuple = [self._class_expansion(x) for x in split_tuple]
             current_symbol = split_expanded_tuple[1][0]
@@ -210,7 +210,7 @@ class TuringTuple:
             movement = split_expanded_tuple[4][0]
             if (not all([len(x) == 1 or (len(x) == 2 and x[0] == "\\") for x in current_symbol]) and len(current_symbol) != 1) or \
                (not all([len(x) == 1 or (len(x) == 2 and x[0] == "\\") for x in new_symbol]) and len(new_symbol) != 1):
-                errors.append((self.index, 'multiple_symbols'))
+                pars_errors.append((self.index, 'multiple_symbols'))
             current_symbol = self._split_each(current_symbol[0], "\\") if len(current_symbol[0]) != 1 else current_symbol
             new_symbol = self._split_each(new_symbol[0], "\\") if len(new_symbol[0]) != 1 else new_symbol
             movement = self._split_each(movement[0], "\\") if len(movement[0]) != 1 else movement
@@ -219,9 +219,9 @@ class TuringTuple:
             split_expanded_tuple[4][0] = movement
             current_state, _, new_state, _, _ = [x[0] for x in split_expanded_tuple]
             if not all([len(x) != 0 for x in [current_state, current_symbol, new_state, new_symbol, movement]]):
-                errors.append((self.index, 'empty_rule'))
+                pars_errors.append((self.index, 'empty_rule'))
             if not all([x in [">", "<", "-"] for x in movement]):
-                errors.append((self.index, 'unrecognised_movement'))
+                pars_errors.append((self.index, 'unrecognised_movement'))
             class_0_elements = [x for x in split_expanded_tuple if x[1] == 0]
             class_1_elements = [x for x in split_expanded_tuple if x[1] == 1]
             class_2_elements = [x for x in split_expanded_tuple if x[1] == 2]
@@ -234,7 +234,7 @@ class TuringTuple:
             if not all([len(x[0]) == max_len_class_2 or len(x[0]) == 1 for x in class_2_elements]) or \
                not all([len(x[0]) == max_len_class_1 or len(x[0]) == 1 for x in class_1_elements]) or \
                not all([len(x[0]) == max_len_class_0 or len(x[0]) == 1 for x in class_0_elements]):
-                errors.append((self.index, 'different_class_sizes'))
+                pars_errors.append((self.index, 'different_class_sizes'))
             return_list = []
             for i_2 in range(max_len_class_2):
                 current_state_loop = current_state[i_2 if len(current_state) != 1 else 0] if class_2[0] else None
@@ -281,17 +281,17 @@ class TuringMachine:
         self.tape_position = 0
         self.tape = list(input_tape)
         self.steps = 0
-        self.prec_index = 0
+        self._prec_index = 0
         self._first_view = True
-        if len(errors) != 0:
-            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(errors[0][0], True),
-                                  self._get_view_tape(), False, self._get_error_message(errors[0][1]))
+        if len(pars_errors) != 0:
+            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(pars_errors[0][0], True),
+                                  self._get_view_tape(), False, self._get_error_message(pars_errors[0][1]))
             interface.show()
             time.sleep(60)
             exit()
 
     def _get_error_message(self, error_code: str) -> str:
-        error_message = f'Error at line {errors[0][0]}: '
+        error_message = f'Error at line {pars_errors[0][0]}: '
         match error_code:
             case 'incompatible_dot_limiters':
                 error_message += 'the characters limiting the dot notation are not of the same time'
@@ -327,10 +327,7 @@ class TuringMachine:
 
     def _get_view_code(self, index: int, direct: bool = False) -> list[tuple[bool, str]]:
         return_list = []
-        try:
-            code_height = tuple(os.get_terminal_size())[1] - 6
-        except OSError:
-            return []
+        code_height = tuple(os.get_terminal_size())[1] - 6
         code_index = self.code_map[index] if not direct else index
         for i in range(code_index - code_height // 2 + 1, code_index + code_height // 2 + 2):
             try:
@@ -367,7 +364,7 @@ class TuringMachine:
                self.tape[self.tape_position]) and i < len(self.code):
             i += 1
             if i == len(self.code):
-                interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self.prec_index),
+                interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self._prec_index),
                                       self._get_view_tape(), False, "Simulation ended! (Press Ctrl+C to exit)")
                 interface.show()
                 time.sleep(60)
@@ -389,7 +386,7 @@ class TuringMachine:
         interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
                               False)
         interface.show()
-        self.prec_index = i
+        self._prec_index = i
         time.sleep(sleep_time)
         if self.tape_position == 0:
             self.tape = [" "] + self.tape
@@ -418,13 +415,10 @@ class Interface:
         def show_code(index: int, arrow: bool) -> str:
             return (f" {'->' if arrow else '  '} {'!' if self.view_code[index - 3][0] else ' '}"
                     f" {self.view_code[index - 3][1]}").ljust(self.code_size - 1)[:self.code_size - 1] + "║\n"
-        try:
-            length, height = tuple(os.get_terminal_size())
-        except OSError:
-            return None
-        if self.code_size + tape_size * (2 if slim_tape else 4) + 10 > length or length < 110 or height < 20:
-            print("The terminal window is not big enough for this settings, try reducing tape and code size or enable "
-                  "slim mode")
+        length, height = tuple(os.get_terminal_size())
+        if self.code_size + tape_size * (2 if slim_tape else 4) + 5 > length or height < 20 or length < 105:
+            os.system("cls" if os.name == "nt" else "clear")
+            print("The terminal window size was changed while the simulator was running and the new size is not supported")
             exit()
 
         c = (height - 8) // 2
@@ -483,7 +477,7 @@ def main():
     global tape_size
     global code_size
     global slim_tape
-    global errors
+    global pars_errors
 
     arg_parser = argparse.ArgumentParser(add_help=False)
     arg_parser.add_argument('--help', '-h', action='help', help="Show this help message and exit")
@@ -495,8 +489,8 @@ def main():
     arg_parser.add_argument("--slim", dest="slim", help="make the cells in the tape smaller, useful when the terminal window is small", action="store_true")
     arg_parser.add_argument("--csize", dest="csize", metavar="<int>", type=int, help="set the size of the left code panel, measured in characters", default=45)
     arg_parser.add_argument("--tsize", dest="tsize", metavar="<int>", type=int, help="set the number of cells visible on the tape", default=33)
-    arg_parser.usage = ("tm-simulator.py filename input [-s | --speed <int>] [-b | --breakpoints] [-i | --instant] [--slim] [--csize <int>] [--tsize <int>] \n"
-                        "usage: tm-simulator.py [-h | --help] ")
+    arg_parser.usage = ("tm-simulator filename input [-s | --speed <int>] [-b | --breakpoints] [-i | --instant] [--slim] [--csize <int>] [--tsize <int>] \n"
+                        "usage: tm-simulator [-h | --help] ")
     args = arg_parser.parse_args()
     speed = args.speed
     tape_size = args.tsize
@@ -505,7 +499,23 @@ def main():
     breakpoints = args.breakpoints
     filename = args.filename
     input_tape = args.input if args.input else " "
-    errors = []
+    pars_errors = []
+
+    error_message = ""
+    try:
+        length, height = tuple(os.get_terminal_size())
+    except OSError:
+        print("This script is not compatible with the terminal you're using")
+        exit()
+    if tape_size % 2 == 0:
+        error_message = "The numbers of cells needs to be an odd number"
+    elif speed < 1 or speed > 10:
+        error_message = "The simulation speed is not within the range"
+    elif code_size + tape_size * (2 if slim_tape else 4) + 5 > length or height < 20 or length < 105:
+        error_message = "The terminal window is not large enough for these settings"
+    if error_message:
+        print(f"\n{error_message}")
+        exit()
 
     with open(filename) as file:
         raw_tuples = [x.removesuffix('\n') for x in file]
@@ -526,4 +536,4 @@ def main():
         exit()
 
 if __name__ == "__main__":
-        main()
+    main()

@@ -18,6 +18,9 @@ Then you can use this command to run the simulator:
 ```
 tm-simulator [filename <path>] [input <string>]
 ```
+- `filename`: the path to the `.txt` file that contains the tuples
+- `input`: the initial state of the machine tape
+
 There are also some optional arguments:
 - `--speed | -s <int>`: set the step speed of the simulation, in a range from 1 to 10
 - `--breakpoints | -b`: enable the breakpoints, pausing the simulation when one is encountered [WIP]
