@@ -10,8 +10,13 @@ It shares the rule syntax with Vittorio Gambaletta's simulator ([VittGam/JSTMSim
 - Instant simulation [WIP]
 
 ## Run the script
+First, install the module running this command:
 ```
-python tm-simulator.py [filename] [input]
+pip install git+https://github.com/ir-trevi/TM-simulator
+```
+Then you can use this command to run the simulator:
+```
+tm-simulator [filename <path>] [input <string>]
 ```
 There are also some optional arguments:
 - `--speed | -s <int>`: set the step speed of the simulation, in a range from 1 to 10

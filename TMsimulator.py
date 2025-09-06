@@ -2,11 +2,6 @@ import os
 import time
 import argparse
 
-global speed
-global tape_size
-global code_size
-global slim_tape
-global errors
 
 class TuringTuple:
 
@@ -483,10 +478,15 @@ class Interface:
                 buffer_string += f"║{' ' * (length - self.code_size - 2)}│" + show_code(i, False)
         print(buffer_string, end='', flush=True)
 
+def main():
+    global speed
+    global tape_size
+    global code_size
+    global slim_tape
+    global errors
 
-if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(add_help=False)
-    arg_parser.add_argument('--help', '-h', action='help', default=argparse.SUPPRESS, help="Show this help message and exit")
+    arg_parser.add_argument('--help', '-h', action='help', help="Show this help message and exit")
     arg_parser.add_argument("filename", type=str, help="Name of the file with the tuples")
     arg_parser.add_argument("input", type=str, help="The initial tape of the machine", default=" ")
     arg_parser.add_argument("--speed", "-s", dest="speed", metavar="<int>", type=int, help="set the step speed of the simulation, in a range from 1 to 10", default=9)
@@ -505,8 +505,8 @@ if __name__ == "__main__":
     breakpoints = args.breakpoints
     filename = args.filename
     input_tape = args.input if args.input else " "
-
     errors = []
+
     with open(filename) as file:
         raw_tuples = [x.removesuffix('\n') for x in file]
     code_tuples = []
@@ -524,3 +524,6 @@ if __name__ == "__main__":
             machine.step()
     except KeyboardInterrupt:
         exit()
+
+if __name__ == "__main__":
+        main()
