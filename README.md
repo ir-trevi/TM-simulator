@@ -2,7 +2,7 @@
 
 A Turing Machine Simulator coded in Python from scratch by me. It uses a terminal interface to show what the machine is doing.
 
-image
+<img width="1538" height="823" alt="turing simulator 2" src="https://github.com/user-attachments/assets/6ee778df-ca1a-4100-8fbe-b5238f3cf35d" />
 
 It shares the rule syntax with Vittorio Gambaletta's simulator ([VittGam/JSTMSimulator](https://github.com/VittGam/JSTMSimulator)), but it adds new features such as:
 - Breakpoints [WIP]
