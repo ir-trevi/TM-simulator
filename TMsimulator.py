@@ -168,15 +168,17 @@ class TuringTuple:
         class2_end_count = self._count(input_string, '}', '\\')
         if class1_start_count == class1_end_count == 0 and class2_start_count == class2_end_count == 0:
             return [[input_string], 0]
+        elif input_string == '[]' or input_string == '{}':
+            pars_errors.append((self.index, 'empty_class'))
         elif class1_start_count != class1_end_count or class2_start_count != class2_end_count:
             pars_errors.append((self.index, 'missing_class_limiters'))
         elif class1_start_count > 1 or class1_end_count > 1 or class2_start_count > 1 or class2_end_count > 1:
             pars_errors.append((self.index, 'multiple_class'))
         class_string1 = self._find(input_string, '[', ']', '\\', '\\', start_included=False, end_included=False)
         class_string2 = self._find(input_string, '{', '}', '\\', '\\', start_included=False, end_included=False)
-        if class_string1 and class_string2:
+        if class1_start_count != 0 and class2_start_count != 0:
             pars_errors.append((self.index, 'multiple_class_types'))
-        if input_string == '[]' or input_string == '{}':
+        elif not class_string1 and not class_string2:
             pars_errors.append((self.index, 'empty_class'))
         class_type = 1 if class_string1 else 2
         class_string = class_string1 if class_string1 else class_string2
@@ -203,6 +205,8 @@ class TuringTuple:
             split_tuple = self._split(clean_tuple, ",", "\\")
             if len(split_tuple) != 5:
                 pars_errors.append((self.index, 'incorrect_arguments_amount'))
+            if not all([bool(x) for x in split_tuple]):
+                pars_errors.append((self.index, 'empty_rule'))
             split_tuple = [self._exclusion_expansion(self._double_dot_expansion(x)) for x in split_tuple]
             split_expanded_tuple = [self._class_expansion(x) for x in split_tuple]
             current_symbol = split_expanded_tuple[1][0]
@@ -218,8 +222,6 @@ class TuringTuple:
             split_expanded_tuple[3][0] = new_symbol
             split_expanded_tuple[4][0] = movement
             current_state, _, new_state, _, _ = [x[0] for x in split_expanded_tuple]
-            if not all([len(x) != 0 for x in [current_state, current_symbol, new_state, new_symbol, movement]]):
-                pars_errors.append((self.index, 'empty_rule'))
             if not all([x in [">", "<", "-"] for x in movement]):
                 pars_errors.append((self.index, 'unrecognised_movement'))
             class_0_elements = [x for x in split_expanded_tuple if x[1] == 0]
@@ -257,7 +259,7 @@ class TuringTuple:
                         return_list.append(','.join([current_state_loop, current_symbol_loop, new_state_loop,
                                                      new_symbol_loop, movement_loop]))
             return return_list
-        except Exception:
+        except Exception as e:
             return ["(0,0,0,0,0)"]
 
     def has_breakpoint(self) -> bool:
@@ -283,15 +285,41 @@ class TuringMachine:
         self.steps = 0
         self._prec_index = 0
         self._first_view = True
+        self._check_determinism()
         if len(pars_errors) != 0:
-            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(pars_errors[0][0], True),
-                                  self._get_view_tape(), False, self._get_error_message(pars_errors[0][1]))
+            is_direct = isinstance(pars_errors[0][0], list)
+            error_line = pars_errors[0][0][0] if is_direct else pars_errors[0][0]
+            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, not is_direct),
+                                  self._get_view_tape(), False, self._get_error_message())
             interface.show()
             time.sleep(60)
             exit()
 
-    def _get_error_message(self, error_code: str) -> str:
-        error_message = f'Error at line {pars_errors[0][0]}: '
+    def _check_determinism(self) -> None:
+        dictionary = {}
+        for element in self.code:
+            current_param = (element.current_state, element.current_symbol)
+            new_param = (element.new_state, element.new_symbol, element.movement)
+            if current_param not in dictionary:
+                dictionary.update({current_param: [new_param]})
+            else:
+                dictionary[current_param].append(new_param)
+
+        for current_param, new_param_list in list(dictionary.items()):
+            if len(list(dict.fromkeys(new_param_list))) != 1:
+                index_list = []
+                for i, element in enumerate(self.code):
+                    for new_param in new_param_list:
+                        if (element.current_state, element.current_symbol) == current_param and \
+                           (element.new_state, element.new_symbol, element.movement) != new_param:
+                            index_list.append(i)
+                pars_errors.append((index_list[:5], 'non_deterministic'))
+
+    def _get_error_message(self) -> str:
+        error_code = pars_errors[0][1]
+        multiple_lines = isinstance(pars_errors[0][0], list)
+        error_lines = ", ".join(list(dict.fromkeys([str(self.code_map[i]) for i in pars_errors[0][0]]))) if multiple_lines else pars_errors[0][0]
+        error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
         match error_code:
             case 'incompatible_dot_limiters':
                 error_message += 'the characters limiting the dot notation are not of the same time'
@@ -303,7 +331,7 @@ class TuringMachine:
                 error_message += 'a bracket enclosing the class is missing'
             case 'empty_class':
                 error_message += 'the class is empty'
-            case 'multiple_class_types':
+            case 'multiple_class_types':  # test not passed for empty classes {}[]
                 error_message += 'there are different class types in the same rule element'
             case 'multiple_class':
                 error_message += 'there are multiple classes in the same rule element'
@@ -321,6 +349,8 @@ class TuringMachine:
                 error_message += 'the opening char \'(\' is missing'
             case 'closing_char_missing':
                 error_message += 'the closing char \')\' is missing'
+            case 'non_deterministic':
+                error_message += 'these tuples will lead to non-deterministic behaviour'
             case _:
                 error_message += 'an unspecified error occurred'
         return error_message
@@ -333,7 +363,8 @@ class TuringMachine:
             try:
                 if i < 0:
                     raise IndexError
-                return_list.append((self.breakpoints[i], self.raw_code[i]))
+                code = self.raw_code[i].replace("!(", "(", 1) if self.raw_code[i].strip()[:2] == "!(" else self.raw_code[i]
+                return_list.append((self.breakpoints[i], code))
             except IndexError:
                 return_list.append((False, ""))
         return return_list
@@ -501,12 +532,12 @@ def main():
     input_tape = args.input if args.input else " "
     pars_errors = []
 
-    error_message = ""
     try:
         length, height = tuple(os.get_terminal_size())
     except OSError:
         print("This script is not compatible with the terminal you're using")
         exit()
+    error_message = ""
     if tape_size % 2 == 0:
         error_message = "The numbers of cells needs to be an odd number"
     elif speed < 1 or speed > 10:
@@ -528,8 +559,8 @@ def main():
         code_tuples.extend([TuringTuple(x, i, False) for x in parsed_tuples])
         code_map.extend([i for x in parsed_tuples])
         breakpoint_list.append(TuringTuple(raw_tuple, i, True).has_breakpoint())
-    machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map)
     try:
+        machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map)
         while True:
             machine.step()
     except KeyboardInterrupt:

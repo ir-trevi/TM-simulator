@@ -1,5 +1,5 @@
 ## Rule syntax
-The basic code unit in this simulator is represented by a tuple made of 5 elements as it follows:  
+The basic code unit in this simulator is represented by a tuple made of 5 elements separated by comma and enclosed by brackets as it follows:  
 ```
 (current state, current symbol, new state, new symbol, movement)
 ```
@@ -18,6 +18,15 @@ It follows this logic: if the machine is in the state `move1` and the head reads
 Since the machine follows a specific order to check the tuples, having two tuples with the same `Current state` and `Current symbol` but different `New state`, `New symbol` or `Movement` will lead to a behaviour based on the position of the tuples in the code. This is what's called a non-deterministic scenario because the machine should give the same output no matter what the order of the tuples in the code is.
 
 On the other hand duplicate tuples are allowed, but it's recommended to just keep a single copy of each tuple in the code even if the result is still deterministic.
+
+### Comments
+Comments can be added after a tuple or by themselves on an empty line and are preceded by a hash sign `#`.
+
+Here's an example:
+```
+(remove, a, remove, -, >)   # this is a comment
+# this is also a comment 
+``` 
 
 ### Special characters
 Some characters cannot be use directly neither as symbols nor as characters in the state name. These characters are the ones needed for the syntax and therefore needs to be escaped with `\ ` to be considered valid. Those are:
