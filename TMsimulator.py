@@ -289,10 +289,13 @@ class TuringMachine:
         if len(pars_errors) != 0:
             is_direct = isinstance(pars_errors[0][0], list)
             error_line = pars_errors[0][0][0] if is_direct else pars_errors[0][0]
-            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, not is_direct),
-                                  self._get_view_tape(), False, self._get_error_message())
-            interface.show()
-            time.sleep(60)
+            if not instant:
+                interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, not is_direct),
+                                      self._get_view_tape(), False, self._get_error_message())
+                interface.show()
+                time.sleep(60)
+            else:
+                print(self._get_error_message())
             exit()
 
     def _check_determinism(self) -> None:
@@ -389,34 +392,49 @@ class TuringMachine:
         return current_char
 
     def step(self) -> None:
-        sleep_time = 1/speed - 0.099
+        sleep_time = 1/speed - 0.099 if not instant else 0
         i = 0
         while (self.code[i].current_state != self.state or self._remapped_char(self.code[i].current_symbol) !=
                self.tape[self.tape_position]) and i < len(self.code):
             i += 1
             if i == len(self.code):
-                interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self._prec_index),
-                                      self._get_view_tape(), False, "Simulation ended! (Press Ctrl+C to exit)")
-                interface.show()
-                time.sleep(60)
+                if not instant:
+                    interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self._prec_index),
+                                          self._get_view_tape(), False, "Simulation ended! (Press Ctrl+C to exit)")
+                    interface.show()
+                    time.sleep(60)
+                else:
+                    print(f"\n\nSteps: {self.steps}    Output: {''.join(self.tape).strip()}")
                 exit()
         self.steps += 1
-        interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
-                              False)
-        interface.show()
-        if self._first_view:
+        if not instant:
+            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
+                                  False)
+            interface.show()
+        if self._first_view and not instant:
             self._first_view = False
             time.sleep(1)
+        if instant:
+            threshold = 75000
+            if self.steps == 1:
+                print("Simulating...  ", end='')
+            elif self.steps % 1000 == 0 and self.steps < threshold:
+                print_char = ['|', '/', '─', '\\'][(self.steps % 4000) // 1000]
+                print(f"\b{print_char}", end='', flush=True)
+            elif self.steps == threshold:
+                print("\nThis program might be stuck in an infinite loop. To stop the simulation press Ctrl + C", end='', flush=True)
         time.sleep(sleep_time)
         self.tape[self.tape_position] = self._remapped_char(self.code[i].new_symbol)
-        interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
-                              True)
-        interface.show()
+        if not instant:
+            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
+                                  True)
+            interface.show()
         time.sleep(sleep_time)
         self.state = self.code[i].new_state
-        interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
-                              False)
-        interface.show()
+        if not instant:
+            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
+                                  False)
+            interface.show()
         self._prec_index = i
         time.sleep(sleep_time)
         if self.tape_position == 0:
@@ -509,6 +527,7 @@ def main():
     global code_size
     global slim_tape
     global pars_errors
+    global instant
 
     arg_parser = argparse.ArgumentParser(add_help=False)
     arg_parser.add_argument('--help', '-h', action='help', help="Show this help message and exit")
@@ -528,6 +547,7 @@ def main():
     code_size = args.csize
     slim_tape = args.slim
     breakpoints = args.breakpoints
+    instant = args.instant
     filename = args.filename
     input_tape = args.input if args.input else " "
     pars_errors = []

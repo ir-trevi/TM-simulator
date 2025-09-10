@@ -1,6 +1,6 @@
 [project]
 name = "TM-simulator"
-version = "1.0.2"
+version = "1.0.3"
 authors = [{name = "M Trevi"}]
 description = "A Turing Machine simulator written in python with a terminal interface"
 readme = "README.md"
