@@ -316,12 +316,12 @@ class TuringMachine:
                         if (element.current_state, element.current_symbol) == current_param and \
                            (element.new_state, element.new_symbol, element.movement) != new_param:
                             index_list.append(i)
-                pars_errors.append((index_list[:5], 'non_deterministic'))
+                pars_errors.append((index_list, 'non_deterministic'))
 
     def _get_error_message(self) -> str:
         error_code = pars_errors[0][1]
         multiple_lines = isinstance(pars_errors[0][0], list)
-        error_lines = ", ".join(list(dict.fromkeys([str(self.code_map[i]) for i in pars_errors[0][0]]))) if multiple_lines else pars_errors[0][0]
+        error_lines = ", ".join(list(dict.fromkeys([str(self.code_map[i]) for i in pars_errors[0][0]]))[:5]) if multiple_lines else pars_errors[0][0]
         error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
         match error_code:
             case 'incompatible_dot_limiters':
@@ -334,7 +334,7 @@ class TuringMachine:
                 error_message += 'a bracket enclosing the class is missing'
             case 'empty_class':
                 error_message += 'the class is empty'
-            case 'multiple_class_types':  # test not passed for empty classes {}[]
+            case 'multiple_class_types':
                 error_message += 'there are different class types in the same rule element'
             case 'multiple_class':
                 error_message += 'there are multiple classes in the same rule element'
@@ -530,7 +530,8 @@ def main():
     global instant
 
     arg_parser = argparse.ArgumentParser(add_help=False)
-    arg_parser.add_argument('--help', '-h', action='help', help="Show this help message and exit")
+    arg_parser.add_argument('--help', '-h', action='help', help=argparse.SUPPRESS)
+    arg_parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     arg_parser.add_argument("filename", type=str, help="Name of the file with the tuples")
     arg_parser.add_argument("input", type=str, help="The initial tape of the machine", default=" ")
     arg_parser.add_argument("--speed", "-s", dest="speed", metavar="<int>", type=int, help="set the step speed of the simulation, in a range from 1 to 10", default=9)
@@ -543,6 +544,7 @@ def main():
     arg_parser.usage = ("tm-simulator [filename <path>] [input <string>] [-s | --speed <int>] [-b | --breakpoints] [-i | --instant] [-a | --auto] [--slim] [--csize <int>] [--tsize <int>] \n"
                         "usage: tm-simulator [-h | --help] ")
     args = arg_parser.parse_args()
+    debug = args.debug
     speed = args.speed
     tape_size = args.tsize
     code_size = args.csize
@@ -560,13 +562,13 @@ def main():
     if not auto and not (code_size or tape_size):
         print("Either auto mode or the specific sizes needs to be specified")
         exit()
-    if not instant:
+    if not instant and not debug:
         try:
             length, height = tuple(os.get_terminal_size())
         except OSError:
             print("This script is not compatible with the terminal you're using")
             exit()
-        if height < 20 or length < 105:
+        if height < 20 or length < 140:
             print("The terminal window is not large enough")
             exit()
         if not auto:
