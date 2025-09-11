@@ -392,7 +392,7 @@ class TuringMachine:
         return current_char
 
     def step(self) -> None:
-        sleep_time = 1/speed - 0.099 if not instant else 0
+        sleep_time = 1 / speed - 0.1 if not instant else 0
         i = 0
         while (self.code[i].current_state != self.state or self._remapped_char(self.code[i].current_symbol) !=
                self.tape[self.tape_position]) and i < len(self.code):
@@ -417,9 +417,9 @@ class TuringMachine:
         if instant:
             threshold = 75000
             if self.steps == 1:
-                print("Simulating...  ", end='')
+                print("Simulating... ─", end='')
             elif self.steps % 1000 == 0 and self.steps < threshold:
-                print_char = ['|', '/', '─', '\\'][(self.steps % 4000) // 1000]
+                print_char = ['\\', '|', '/', '─'][(self.steps % 4000) // 1000]
                 print(f"\b{print_char}", end='', flush=True)
             elif self.steps == threshold:
                 print("\nThis program might be stuck in an infinite loop. To stop the simulation press Ctrl + C", end='', flush=True)
@@ -465,7 +465,7 @@ class Interface:
             return (f" {'->' if arrow else '  '} {'!' if self.view_code[index - 3][0] else ' '}"
                     f" {self.view_code[index - 3][1]}").ljust(self.code_size - 1)[:self.code_size - 1] + "║\n"
         length, height = tuple(os.get_terminal_size())
-        if self.code_size + tape_size * (2 if slim_tape else 4) + 5 > length or height < 20 or length < 105:
+        if self.code_size + tape_size * (2 if slim_tape else 4) + 10 > length or height < 20 or length < 105:
             os.system("cls" if os.name == "nt" else "clear")
             print("The terminal window size was changed while the simulator was running and the new size is not supported")
             exit()
@@ -511,7 +511,7 @@ class Interface:
             elif i == height - 3:
                 buffer_string += f"╠{'═' * (length - self.code_size - 2)}╧{'═' * (self.code_size - 1)}╣"
             elif i == height - 2:
-                text = f"  Simulation speed: {speed}  Steps counter: {self.steps}    " + \
+                text = f"  Simulation speed: {speed}   Steps counter: {self.steps}    " + \
                        ("Press Ctrl + C at any moment to stop the simulation... " if not self.status_bar else
                         self.status_bar)
                 buffer_string += f"║{text.ljust(length - 2)}║"
@@ -536,10 +536,11 @@ def main():
     arg_parser.add_argument("--speed", "-s", dest="speed", metavar="<int>", type=int, help="set the step speed of the simulation, in a range from 1 to 10", default=9)
     arg_parser.add_argument("--breakpoints", "-b", dest="breakpoints", help="enable the breakpoints, pausing the simulation when one is encountered", action="store_true")
     arg_parser.add_argument("--instant", "-i", dest="instant", help="return the final tape when the machine stops, without the interface", action="store_true")
+    arg_parser.add_argument("--auto", "-a", dest="auto", help="finds the best interface options based on the terminal size", action="store_true")
     arg_parser.add_argument("--slim", dest="slim", help="make the cells in the tape smaller, useful when the terminal window is small", action="store_true")
-    arg_parser.add_argument("--csize", dest="csize", metavar="<int>", type=int, help="set the size of the left code panel, measured in characters", default=45)
-    arg_parser.add_argument("--tsize", dest="tsize", metavar="<int>", type=int, help="set the number of cells visible on the tape", default=33)
-    arg_parser.usage = ("tm-simulator filename input [-s | --speed <int>] [-b | --breakpoints] [-i | --instant] [--slim] [--csize <int>] [--tsize <int>] \n"
+    arg_parser.add_argument("--csize", dest="csize", metavar="<int>", type=int, help="set the size of the left code panel, measured in characters", default=None)
+    arg_parser.add_argument("--tsize", dest="tsize", metavar="<int>", type=int, help="set the number of cells visible on the tape", default=None)
+    arg_parser.usage = ("tm-simulator [filename <path>] [input <string>] [-s | --speed <int>] [-b | --breakpoints] [-i | --instant] [-a | --auto] [--slim] [--csize <int>] [--tsize <int>] \n"
                         "usage: tm-simulator [-h | --help] ")
     args = arg_parser.parse_args()
     speed = args.speed
@@ -548,25 +549,42 @@ def main():
     slim_tape = args.slim
     breakpoints = args.breakpoints
     instant = args.instant
+    auto = args.auto
     filename = args.filename
     input_tape = args.input if args.input else " "
     pars_errors = []
 
-    try:
-        length, height = tuple(os.get_terminal_size())
-    except OSError:
-        print("This script is not compatible with the terminal you're using")
+    if speed < 1 or speed > 10:
+        print("The simulation speed is not within the range")
         exit()
-    error_message = ""
-    if tape_size % 2 == 0:
-        error_message = "The numbers of cells needs to be an odd number"
-    elif speed < 1 or speed > 10:
-        error_message = "The simulation speed is not within the range"
-    elif code_size + tape_size * (2 if slim_tape else 4) + 5 > length or height < 20 or length < 105:
-        error_message = "The terminal window is not large enough for these settings"
-    if error_message:
-        print(f"\n{error_message}")
+    if not auto and not (code_size or tape_size):
+        print("Either auto mode or the specific sizes needs to be specified")
         exit()
+    if not instant:
+        try:
+            length, height = tuple(os.get_terminal_size())
+        except OSError:
+            print("This script is not compatible with the terminal you're using")
+            exit()
+        if height < 20 or length < 105:
+            print("The terminal window is not large enough")
+            exit()
+        if not auto:
+            if tape_size % 2 == 0:
+                print("The numbers of cells needs to be an odd number")
+                exit()
+            elif code_size + tape_size * (2 if slim_tape else 4) + 5 > length:
+                print("The terminal window is not large enough for these settings")
+                exit()
+        else:
+            if length > 172:
+                slim_tape = False
+                tape_size = 33
+                code_size = length - tape_size * 4 - 14
+            else:
+                slim_tape = True
+                tape_size = 33
+                code_size = length // 4
 
     with open(filename) as file:
         raw_tuples = [x.removesuffix('\n') for x in file]

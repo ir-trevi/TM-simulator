@@ -1,13 +1,13 @@
 [project]
 name = "TM-simulator"
-version = "1.0.3"
+version = "1.0.4"
 authors = [{name = "M Trevi"}]
 description = "A Turing Machine simulator written in python with a terminal interface"
 readme = "README.md"
-license = "MIT"
+license = {text = "MIT"}
 
 [project.scripts]
 tm-simulator = "TMsimulator:main"
 
 [project.urls]
-github = "https://github.com/ir-trevi/TM-simulator/"
+Homepage = "https://github.com/ir-trevi/TM-simulator/"
