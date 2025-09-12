@@ -552,23 +552,9 @@ def main():
     breakpoints = args.breakpoints
     instant = args.instant
     auto = args.auto
+    filename = args.filename
     input_tape = args.input if args.input else " "
     pars_errors = []
-
-    example_folder = os.path.join(os.path.dirname(__file__), "examples")
-    match args.filename:
-        case "count":
-            filename = os.path.join(example_folder, "dots.txt")
-        case "even-odd":
-            filename = os.path.join(example_folder, "even-odd.txt")
-        case "palindrome":
-            filename = os.path.join(example_folder, "palindrome.txt")
-        case "reverse":
-            filename = os.path.join(example_folder, "reverse.txt")
-        case "bin-dec":
-            filename = os.path.join(example_folder, "bin-dec.txt")
-        case _:
-            filename = args.filename
 
     if speed < 1 or speed > 10:
         print("The simulation speed is not within the range")
@@ -602,8 +588,13 @@ def main():
                 tape_size = 33
                 code_size = length // 4
 
-    with open(filename) as file:
-        raw_tuples = [x.removesuffix('\n') for x in file]
+    try:
+        with open(filename) as file:
+            raw_tuples = [x.removesuffix('\n') for x in file]
+    except FileNotFoundError:
+        print("The file with the program was not found (paths are not supported, change directory and then run the script there)")
+        exit()
+
     code_tuples = []
     code_map = []
     breakpoint_list = []

@@ -19,7 +19,7 @@ Then you can use this command to run the simulator:
 ```
 tm-simulator [filename <path>] [input <string>] -a
 ```
-- `filename`: the path to the `.txt` file that contains the tuples
+- `filename`: the name of the `.txt` program file that contains the tuples
 - `input`: the initial state of the machine tape
 
 There are also some optional arguments:
@@ -38,9 +38,4 @@ When `--instant | -i` is selected, all the other interface-related setting will 
 ## Simulator syntax
 Check my extensive [guide](syntax.md) on the syntax of this simulator, where you can find all the information you need.
 
-In the [examples](examples) folder you can find some programs I've made, ranging from easy to hard, that you can run directly replacing the `filename` field with one of the file name without the `.txt` extension.
-
-So, for example, to run the binary to decimal converter program you need to use this command:
-```
-tm-simulator bin-dec [input] ...   # Add all the other options to run
-```
+In the [examples](examples) folder you can find some programs I've made, ranging from easy to hard, that you can run on the simulator.
