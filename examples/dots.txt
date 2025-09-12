@@ -1,0 +1,12 @@
+# Example 1 - Check dots
+# Input: string made dots (.)
+# Output: E if the number of dots is even, O if it is odd
+
+(0, ., 1, -, >)
+(1, ., 0, -, >)
+(0, -, end, e, -)
+(1, -, end, o, -)
+
+# A more compact solution using classes would be:
+# ([01], ., [01], -, >)
+# ([01], -, end, [eo], -)

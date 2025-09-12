@@ -1,0 +1,20 @@
+# Example 5 - Binary to decimal
+# Input: binary number
+# Output: decimal representation of the number
+
+(0, 01, prepare, 01, <)
+(prepare, -, to_dec, $, >)
+(to_dec, 01, to_dec, 01, >)
+(to_dec, -, dec, -, <)
+(dec, 1, to_add, 0, <)
+(dec, 0, dec, 1, <)
+(to_add, 10, to_add, 10, <)
+(to_add, $, add, $, <)
+(add, -0..8, return, 11..9, >)
+(add, 9, add, 0, <)
+(return, 0..9, return, 0..9, >)
+(return, $, to_dec, $, >)
+(dec, $, remove, -, >)
+(remove, 1, remove, -, >)
+(remove, -, end, -, <)
+(end, -, end, -, <)

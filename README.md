@@ -6,9 +6,9 @@ A Turing Machine Simulator coded in Python from scratch by me. It uses a termina
 
 It shares the rule syntax and a similar interface with Vittorio Gambaletta's simulator ([VittGam/JSTMSimulator](https://github.com/VittGam/JSTMSimulator)), but it adds new features such as:
 - Deterministic behaviour check
+- Instant simulation
 - Breakpoints [WIP]
 - Stepping (back and forward) [WIP]
-- Instant simulation [WIP]
 
 ## Run the script
 First, install the module running this command:
@@ -31,5 +31,16 @@ There are also some optional arguments:
 - `--csize <int>`: set the size of the left code panel, measured in characters
 - `--tsize <int>`: set the number of cells visible on the tape
 
+Either `--auto | -a` or both `--csize <int>` and `--tsize <int>` need to be included in the command. When `--auto | -a` is selected it will overwrite all the other settings (`--csize`, `--tsize`, `--slim`).
+
+When `--instant | -i` is selected, all the other interface-related setting will be discarded.
+
 ## Simulator syntax
 Check my extensive [guide](syntax.md) on the syntax of this simulator, where you can find all the information you need.
+
+In the [examples](examples) folder you can find some programs I've made, ranging from easy to hard, that you can run directly replacing the `filename` field with one of the file name without the `.txt` extension.
+
+So, for example, to run the binary to decimal converter program you need to use this command:
+```
+tm-simulator bin-dec [input] ...   # Add all the other options to run
+```

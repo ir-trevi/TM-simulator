@@ -1,0 +1,11 @@
+# Example 2 - Even or Odd
+# Input: number
+# Output: E if the number is even, O if it is odd
+
+(0, 0..9, 0, 0..9, >)
+(0, -, check, -, <)
+(check, 02468, remove, e, <)
+(check, 13579, remove, o, <)
+(remove, 0..9, remove, -, <)
+(remove, -, end, -, >)
+(end, -, end, -, >)

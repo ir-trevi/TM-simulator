@@ -404,7 +404,7 @@ class TuringMachine:
                     interface.show()
                     time.sleep(60)
                 else:
-                    print(f"\n\nSteps: {self.steps}    Output: {''.join(self.tape).strip()}")
+                    print(f"\nSteps: {self.steps}    Output: {''.join(self.tape).strip().upper()}")
                 exit()
         self.steps += 1
         if not instant:
@@ -415,14 +415,14 @@ class TuringMachine:
             self._first_view = False
             time.sleep(1)
         if instant:
-            threshold = 75000
+            threshold = 100000
             if self.steps == 1:
-                print("Simulating... ─", end='')
-            elif self.steps % 1000 == 0 and self.steps < threshold:
-                print_char = ['\\', '|', '/', '─'][(self.steps % 4000) // 1000]
+                print("\nSimulating... ─", end='')
+            elif self.steps % 2000 == 0 and self.steps < threshold:
+                print_char = ['\\', '|', '/', '─'][(self.steps % 8000) // 2000]
                 print(f"\b{print_char}", end='', flush=True)
             elif self.steps == threshold:
-                print("\nThis program might be stuck in an infinite loop. To stop the simulation press Ctrl + C", end='', flush=True)
+                print("\nThis program might be stuck in an infinite loop. To stop the simulation press Ctrl + C", flush=True)
         time.sleep(sleep_time)
         self.tape[self.tape_position] = self._remapped_char(self.code[i].new_symbol)
         if not instant:
@@ -497,7 +497,7 @@ class Interface:
                 upper_tape = f"─{('┬─' if slim_tape else '─┬──') * (tape_size + 1)}"
                 buffer_string += f"║{upper_tape.center(length - self.code_size - 2)}│" + show_code(i, False)
             elif i == c + 5:
-                tape_content = f"  │ {' │ '.join(self.view_tape)} │  "
+                tape_content = f"  │ {' │ '.join(self.view_tape.upper())} │  "
                 tape_content = f" {tape_content.replace(' │ ', '│')} " if slim_tape else tape_content
                 buffer_string += f"║{tape_content.center(length - self.code_size - 2)}│" + show_code(i, False)
             elif i == c + 6:
@@ -506,7 +506,7 @@ class Interface:
             elif i == height - 5:
                 buffer_string += f"╟{'─' * (length - self.code_size - 2)}┤" + show_code(i, False)
             elif i == height - 4:
-                buffer_string += f"║  Input: {self.input_tape.ljust(length - self.code_size - 10)}"\
+                buffer_string += f"║  Input: {self.input_tape.upper().ljust(length - self.code_size - 10)}"\
                                  [:length - self.code_size - 1] + "│" + show_code(i, False)
             elif i == height - 3:
                 buffer_string += f"╠{'═' * (length - self.code_size - 2)}╧{'═' * (self.code_size - 1)}╣"
@@ -552,14 +552,28 @@ def main():
     breakpoints = args.breakpoints
     instant = args.instant
     auto = args.auto
-    filename = args.filename
     input_tape = args.input if args.input else " "
     pars_errors = []
+
+    example_folder = os.path.join(os.path.dirname(__file__), "examples")
+    match args.filename:
+        case "count":
+            filename = os.path.join(example_folder, "dots.txt")
+        case "even-odd":
+            filename = os.path.join(example_folder, "even-odd.txt")
+        case "palindrome":
+            filename = os.path.join(example_folder, "palindrome.txt")
+        case "reverse":
+            filename = os.path.join(example_folder, "reverse.txt")
+        case "bin-dec":
+            filename = os.path.join(example_folder, "bin-dec.txt")
+        case _:
+            filename = args.filename
 
     if speed < 1 or speed > 10:
         print("The simulation speed is not within the range")
         exit()
-    if not auto and not (code_size or tape_size):
+    if (not auto and not (code_size or tape_size)) and not instant:
         print("Either auto mode or the specific sizes needs to be specified")
         exit()
     if not instant and not debug:

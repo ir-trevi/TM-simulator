@@ -1,0 +1,16 @@
+# Example 4 - Reverse string
+# Input: string made of A and B
+# Output: the string flipped
+
+(0, ab, prepare, ab, >)
+(prepare, ab, prepare, ab, >)
+(prepare, -, read, $, <)
+(read, ., read, ., <)
+(read, [ab], write_[ab], ., >)
+(write_[ab], ab.$, write_[ab], ab.$, >)
+(write_[ab], -, return, [ab], <)
+(return, ab, return, ab, <)
+(return, $, read, $, <)
+(read, -, remove, -, >)
+(remove, ., remove, -, >)
+(remove, $, end, -, >)

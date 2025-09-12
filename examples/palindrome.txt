@@ -1,0 +1,15 @@
+# Example 3 - Palindrome
+# Input: string made of A and B
+# Output: Y if the string is palindrome, N otherwise
+
+(0, [ab], found_[ab], -, >)
+(found_[ab], ab, found_[ab], ab, >)
+(found_[ab], -, search_[ab], -, <)
+(search_[ab], [ab], return, -, <)
+(search_[ab], [ba], remove, -, <)
+(return, ab, return, ab, <)
+(return, -, 0, -, >)
+(search_[ab], -, end, y, -)
+(0, -, end, y, -)
+(remove, ab, remove, -, <)
+(remove, -, end, n, -)
