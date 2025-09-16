@@ -404,7 +404,7 @@ class TuringMachine:
                     interface.show()
                     time.sleep(60)
                 else:
-                    print(f"\nSteps: {self.steps}    Output: {''.join(self.tape).strip().upper()}")
+                    print(f"\n\nSteps: {self.steps}    Output: {''.join(self.tape).strip().upper()}")
                 exit()
         self.steps += 1
         if not instant:
@@ -561,6 +561,9 @@ def main():
         exit()
     if (not auto and not (code_size or tape_size)) and not instant:
         print("Either auto mode or the specific sizes needs to be specified")
+        exit()
+    if code_size < 0 or tape_size <= 0:
+        print("The specified sizes are negative")
         exit()
     if not instant and not debug:
         try:

@@ -17,13 +17,13 @@ pip install git+https://github.com/ir-trevi/TM-simulator
 ```
 Then you can use this command to run the simulator:
 ```
-tm-simulator [filename <path>] [input <string>] -a
+tm-simulator [filename <file>] [input <string>] -a
 ```
 - `filename`: the name of the `.txt` program file that contains the tuples
 - `input`: the initial state of the machine tape
 
 There are also some optional arguments:
-- `--speed | -s <int>`: set the step speed of the simulation, in a range from 1 to 10
+- `--speed | -s <int>`: set the step speed of the simulation, in a range from `1` to `10`, default is `9`
 - `--breakpoints | -b`: enable the breakpoints, pausing the simulation when one is encountered [WIP]
 - `--instant | -i`: return the final tape when the machine stops, without the interface
 - `--auto | -a`: finds the best interface options based on the terminal size
