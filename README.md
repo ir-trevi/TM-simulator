@@ -28,10 +28,11 @@ There are also some optional arguments:
 - `--instant | -i`: return the final tape when the machine stops, without the interface
 - `--auto | -a`: finds the best interface options based on the terminal size
 - `--slim`: make the cells in the tape smaller, useful when the terminal window is small
-- `--csize <int>`: set the size of the left code panel, measured in characters
+- `--csize <int>`: set the size of the left code panel, measured in characters. It can also be set to `0` and no code will be displayed
 - `--tsize <int>`: set the number of cells visible on the tape
 
-Either `--auto | -a` or both `--csize <int>` and `--tsize <int>` need to be included in the command. When `--auto | -a` is selected it will overwrite all the other settings (`--csize`, `--tsize`, `--slim`).
+Either `--auto | -a` or both `--csize <int>` and `--tsize <int>` need to be included in the command.  
+When `--auto | -a` is selected it will overwrite all the other settings (`--csize`, `--tsize`, `--slim`) except when `--csize` is `0` to disable code.
 
 When `--instant | -i` is selected, all the other interface-related setting will be discarded.
 
