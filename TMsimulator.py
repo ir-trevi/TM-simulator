@@ -1,7 +1,7 @@
 import os
 import time
 import argparse
-
+import keyboard
 
 class TuringTuple:
 
@@ -283,20 +283,23 @@ class TuringMachine:
         self.tape_position = 0
         self.tape = list(input_tape)
         self.steps = 0
+        self.paused = True
+        self.ended = False
+        self.silent = False
+        self.error = None
         self._prec_index = 0
         self._first_view = True
-        self._check_determinism()
+        self._check_determinism() if not self.silent else None
         if len(pars_errors) != 0:
             is_direct = isinstance(pars_errors[0][0], list)
             error_line = pars_errors[0][0][0] if is_direct else pars_errors[0][0]
             if not instant:
-                interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, not is_direct),
-                                      self._get_view_tape(), False, self._get_error_message())
-                interface.show()
-                time.sleep(60)
+                error_interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, not is_direct),
+                                            self._get_view_tape(), False, self._get_error_message())
+                self.error = error_interface
             else:
                 print(self._get_error_message())
-            exit()
+                exit()
 
     def _check_determinism(self) -> None:
         dictionary = {}
@@ -391,52 +394,112 @@ class TuringMachine:
             current_char = special_view_chars[special_code_char.index(current_char)]
         return current_char
 
-    def step(self) -> None:
-        sleep_time = 1 / speed - 0.1 if not instant else 0
+    def pause(self) -> None:
+        if not self.silent and not self.error and not self.ended:
+            self.paused = not self.paused
+
+    def move_right(self) -> None:
+        if self.silent or self.error:
+            return None
+        elif self.paused:
+            global speed
+            old_speed = speed
+            self.change_speed(2)
+            self.step(stepping=True)
+            self.change_speed(old_speed)
+        elif self.ended:
+            if self.tape_position == len(self.tape) - 1:
+                self.tape = self.tape + [" "]
+            self.tape_position += 1
+
+    def move_left(self) -> None:
+        if self.silent or self.error:
+            return None
+        elif self.paused:
+            back_machine = TuringMachine(self.input_tape, self.code, self.breakpoints, self.raw_code, self.code_map)
+            back_machine.silent = True
+            while back_machine.steps < self.steps - 1:
+                back_machine.step()
+            self.state = back_machine.state
+            self.tape_position = back_machine.tape_position
+            self.tape = back_machine.tape
+            self.steps = back_machine.steps
+            self._prec_index = back_machine._prec_index
+        elif self.ended:
+            if self.tape_position == 0:
+                self.tape = [" "] + self.tape
+                self.tape_position += 1
+            self.tape_position -= 1
+
+    def change_speed(self, value: int) -> None:
+        if self.paused:
+            global speed
+            speed = 10 if value == 0 else value
+
+    def terminate(self) -> None:
+        keyboard.send("enter")
+        input()
+        print()
+        os._exit(0)
+
+    def restart(self) -> None:
+        if self.paused or self.ended:
+            time.sleep(0.5)
+            self.steps = 0
+            self.state = "0"
+            self.tape = list(self.input_tape)
+            self.tape_position = 0
+            self.ended = False
+            self.paused = True
+
+    def step(self, stepping: bool = False) -> None:
+        if ((self.paused and not stepping) or self.ended) and not instant:
+            if self.steps == 0:
+                status_message = "Press \"space\" to start the simulation"
+            elif self.paused:
+                status_message = "Simulation paused! (Press \"space\" to resume)"
+            else:
+                status_message = "Simulation ended! (Press \"q\" to exit)"
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(self._prec_index), self._get_view_tape(),
+                      status_bar=status_message)
+            return None
+        if self.error:
+            self.error.show()
+            return None
+        sleep_time = 1 / speed - 0.1
         i = 0
-        while (self.code[i].current_state != self.state or self._remapped_char(self.code[i].current_symbol) !=
-               self.tape[self.tape_position]) and i < len(self.code):
-            i += 1
-            if i == len(self.code):
-                if not instant:
-                    interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self._prec_index),
-                                          self._get_view_tape(), False, "Simulation ended! (Press Ctrl+C to exit)")
-                    interface.show()
-                    time.sleep(60)
-                else:
-                    print(f"\n\nSteps: {self.steps}    Output: {''.join(self.tape).strip().upper()}")
-                exit()
-        self.steps += 1
-        if not instant:
-            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
-                                  False)
-            interface.show()
-        if self._first_view and not instant:
-            self._first_view = False
-            time.sleep(1)
+        if not self.ended:
+            while self.code[i].current_state != self.state or self._remapped_char(self.code[i].current_symbol) != \
+                  self.tape[self.tape_position]:
+                i += 1
+                if i == len(self.code):
+                    self.ended = True
+                    return None
         if instant:
-            threshold = 100000
-            if self.steps == 1:
-                print("\nSimulating... ─", end='')
-            elif self.steps % 2000 == 0 and self.steps < threshold:
-                print_char = ['\\', '|', '/', '─'][(self.steps % 8000) // 2000]
-                print(f"\b{print_char}", end='', flush=True)
-            elif self.steps == threshold:
-                print("\nThis program might be stuck in an infinite loop. To stop the simulation press Ctrl + C", flush=True)
-        time.sleep(sleep_time)
+            if self.ended:
+                print(f"\n\nSteps: {self.steps}    Output: {''.join(self.tape).strip().upper()}")
+                exit()
+            else:
+                threshold = 100000
+                simulating_string = "Simulating... ─"
+                if self.steps == 0:
+                    print(f"\n{simulating_string}", end='', flush=True)
+                elif self.steps == threshold:
+                    info_string = "This program might be stuck in an infinite loop. To stop the simulation press \"q\""
+                    print(f"\r{info_string}\n{simulating_string}", end='', flush=True)
+                elif self.steps % (mod := 4000) == 0:
+                    print_char = ['─', '\\', '|', '/'][(self.steps % (mod * 4)) // mod]
+                    print(f"\b{print_char}", end='', flush=True)
+        self.steps += 1
         self.tape[self.tape_position] = self._remapped_char(self.code[i].new_symbol)
-        if not instant:
-            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
-                                  True)
-            interface.show()
-        time.sleep(sleep_time)
+        if not instant and not self.silent:
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), writing=True)
+            time.sleep(sleep_time)
         self.state = self.code[i].new_state
-        if not instant:
-            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(),
-                                  False)
-            interface.show()
+        if not instant and not self.silent:
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape())
+            time.sleep(sleep_time)
         self._prec_index = i
-        time.sleep(sleep_time)
         if self.tape_position == 0:
             self.tape = [" "] + self.tape
             self.tape_position += 1
@@ -446,11 +509,16 @@ class TuringMachine:
             self.tape_position += 1
         elif self.code[i].movement == "<":
             self.tape_position -= 1
+        if not instant and not self.silent:
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape())
+            time.sleep(sleep_time)
+            if self.breakpoints[self.code_map[i]] and breakpoints and not self.paused and not self.silent:
+                self.pause()
 
 class Interface:
 
     def __init__(self, state: str, input_tape: str, steps: int, view_code: list[tuple[bool, str]], view_tape: str,
-                 writing: bool, status_bar: str = None) -> None:
+                 writing: bool = False, status_bar: str = "Simulating... (Press \"space\" to pause)") -> None:
         self.state = state
         self.input_tape = input_tape
         self.steps = steps
@@ -459,6 +527,7 @@ class Interface:
         self.writing = writing
         self.code_size = code_size
         self.status_bar = status_bar
+        self.show()
 
     def show(self) -> None:
         def show_code(index: int, arrow: bool) -> str:
@@ -526,7 +595,7 @@ class Interface:
                             else f"╠{'═' * (length - 2)}╣"
             elif i == height - 2:
                 text = f"  Simulation speed: {speed}   Steps counter: {self.steps}    " + \
-                       ("Press Ctrl + C at any moment to stop the simulation... " if not self.status_bar else
+                       ("Press \"q\" at any moment to stop the simulation... " if not self.status_bar else
                         self.status_bar)
                 buffer_string += f"║{text.ljust(length - 2)}║"
             elif i == height - 1:
@@ -543,9 +612,10 @@ def main():
     global slim_tape
     global pars_errors
     global instant
+    global breakpoints
 
     arg_parser = argparse.ArgumentParser(add_help=False)
-    arg_parser.add_argument('--help', '-h', action='help', help=argparse.SUPPRESS)
+    arg_parser.add_argument('--help', '-h', '-?', action='help', help=argparse.SUPPRESS)
     arg_parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
     arg_parser.add_argument("filename", type=str, help="Name of the file with the tuples")
     arg_parser.add_argument("input", type=str, help="The initial tape of the machine", default=" ")
@@ -587,6 +657,9 @@ def main():
             print("The terminal window is not large enough")
             exit()
         if not auto:
+            if code_size < 0 or tape_size <= 0:
+                print("The specified sizes are negative")
+                exit()
             if tape_size % 2 == 0:
                 print("The numbers of cells needs to be an odd number")
                 exit()
@@ -602,9 +675,6 @@ def main():
                 slim_tape = True
                 tape_size = 33
                 code_size = length // 4 if code_size != 0 else 0
-    if code_size < 0 or tape_size <= 0:
-        print("The specified sizes are negative")
-        exit()
 
     try:
         with open(filename) as file:
@@ -622,8 +692,17 @@ def main():
         code_tuples.extend([TuringTuple(x, i, False) for x in parsed_tuples])
         code_map.extend([i for x in parsed_tuples])
         breakpoint_list.append(TuringTuple(raw_tuple, i, True).has_breakpoint())
+    machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map)
+
+    keyboard.on_press_key("q", lambda _: machine.terminate())
+    if not instant:
+        keyboard.on_press_key("space", lambda _: machine.pause())
+        keyboard.on_press_key("right", lambda _: machine.move_right())
+        keyboard.on_press_key("left", lambda _: machine.move_left())
+        [keyboard.on_press_key(x+1, lambda _, y=x: machine.change_speed(y)) for x in range(11)[1:]]
+        keyboard.on_press_key("r", lambda _: machine.restart())
+
     try:
-        machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map)
         while True:
             machine.step()
     except KeyboardInterrupt:

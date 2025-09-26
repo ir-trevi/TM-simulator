@@ -28,6 +28,15 @@ Here's an example:
 # this is also a comment 
 ``` 
 
+### Breakpoints
+Breakpoints are used to stop the simulation when a specific tuple with is the one with the matching `Current state` and `Current symbol` of the machine. It's marked by an exclamation mark `!` just before the opening bracket `(`, so with these tuples:
+```
+!(find_a, a, found, -, -)
+(find_b, b, found, -, -)
+(find_c, c, found, -, -)
+```  
+The simulation will be paused whenever the machine `current state` is `find_a` and the `current symbol` is `a`.
+
 ### Special characters
 Some characters cannot be use directly neither as symbols nor as characters in the state name. These characters are the ones needed for the syntax and therefore needs to be escaped with `\ ` to be considered valid. Those are:
 - All the brackets `(`, `)`, `[`, `]`, `{`, `}`
