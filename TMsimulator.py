@@ -272,13 +272,13 @@ class TuringTuple:
 
 class TuringMachine:
 
-    def __init__(self, input_tape: str, code: list[TuringTuple], breakpoints: list[bool], raw_code: list[str],
+    def __init__(self, input_tape: str, code: list[TuringTuple], breakpoints_list: list[bool], raw_code: list[str],
                  code_map: list[int]) -> None:
         self.input_tape = input_tape
         self.code = code
         self.raw_code = raw_code
         self.code_map = code_map
-        self.breakpoints = breakpoints
+        self.breakpoints_list = breakpoints_list
         self.state = "0"
         self.tape_position = 0
         self.tape = list(input_tape)
@@ -370,7 +370,7 @@ class TuringMachine:
                 if i < 0:
                     raise IndexError
                 code = self.raw_code[i].replace("!(", "(", 1) if self.raw_code[i].strip()[:2] == "!(" else self.raw_code[i]
-                return_list.append((self.breakpoints[i], code))
+                return_list.append((self.breakpoints_list[i], code))
             except IndexError:
                 return_list.append((False, ""))
         return return_list
@@ -416,7 +416,7 @@ class TuringMachine:
         if self.silent or self.error:
             return None
         elif self.paused:
-            back_machine = TuringMachine(self.input_tape, self.code, self.breakpoints, self.raw_code, self.code_map)
+            back_machine = TuringMachine(self.input_tape, self.code, self.breakpoints_list, self.raw_code, self.code_map)
             back_machine.silent = True
             while back_machine.steps < self.steps - 1:
                 back_machine.step()
@@ -438,8 +438,9 @@ class TuringMachine:
 
     def terminate(self) -> None:
         keyboard.send("enter")
+        keyboard.send("enter")
         input()
-        print()
+        input()
         os._exit(0)
 
     def restart(self) -> None:
@@ -453,7 +454,7 @@ class TuringMachine:
             self.paused = True
 
     def step(self, stepping: bool = False) -> None:
-        if ((self.paused and not stepping) or self.ended) and not instant:
+        if ((self.paused and not stepping) or self.ended) and not instant and not self.silent:
             if self.steps == 0:
                 status_message = "Press \"space\" to start the simulation"
             elif self.paused:
@@ -512,7 +513,7 @@ class TuringMachine:
         if not instant and not self.silent:
             Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape())
             time.sleep(sleep_time)
-            if self.breakpoints[self.code_map[i]] and breakpoints and not self.paused and not self.silent:
+            if self.breakpoints_list[self.code_map[i]] and breakpoints and not self.paused and not self.silent:
                 self.pause()
 
 class Interface:
@@ -690,7 +691,7 @@ def main():
         parsed_tuples = TuringTuple(raw_tuple, i, True).expanded_tuple
         parsed_tuples = [x for x in parsed_tuples if x != ""]
         code_tuples.extend([TuringTuple(x, i, False) for x in parsed_tuples])
-        code_map.extend([i for x in parsed_tuples])
+        code_map.extend([i for _ in parsed_tuples])
         breakpoint_list.append(TuringTuple(raw_tuple, i, True).has_breakpoint())
     machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map)
 

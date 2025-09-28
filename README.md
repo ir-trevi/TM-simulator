@@ -6,6 +6,7 @@ A Turing Machine Simulator coded in Python from scratch by me. It uses a termina
 
 It shares the [syntax](syntax.md) and a similar interface with Vittorio Gambaletta's simulator ([VittGam/JSTMSimulator](https://github.com/VittGam/JSTMSimulator)), but it adds new features such as:
 - Deterministic behaviour check
+- Faster simulation speeds
 - Instant simulation
 - Breakpoints
 - Stepping (backward and forward)
