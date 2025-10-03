@@ -38,12 +38,12 @@ When `--auto | -a` is selected it will overwrite all the other settings (`--csiz
 When `--instant | -i` is selected, all the other interface-related setting will be discarded.
 
 ## Use the simulator
-Without `--instant | -i` selected, when the command to run the simulator is entered, the interface shows up. There are 3 possible states of the simulator:
+Without `--instant | -i` selected, when the command to run the simulator is entered, the interface shows up and the simulation is `paused`. There are 3 possible states of the simulator:
 - `Running`: in this state the simulator can be paused only by pressing the `spacebar`
 - `Paused`: in this state there are some actions available such as:
   - changing the speed, using the numbers from `1` to `9` and `0` (where `0` represents speed `10`)
   - stepping backward or forward, respectively with `left arrow key` and `right arrow key` (don't hold down the button!)
-  - resuming the simulation with `spacebar`
+  - resuming or starting the simulation with `spacebar`
   - restarting the simulation with `r`
 - `Ended`: in this state it's possible to either restarting the simulation with `r` or moving the tape left or right with `left arrow key` and `right arrow key`
 

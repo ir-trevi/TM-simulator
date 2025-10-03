@@ -1,5 +1,5 @@
 ## Rule syntax
-The basic code unit in this simulator is represented by a tuple made of 5 elements separated by comma and enclosed by brackets as it follows:  
+The basic code unit in the machine is represented by a tuple made of 5 elements separated by comma and enclosed by brackets as it follows:  
 ```
 (current state, current symbol, new state, new symbol, movement)
 ```
@@ -7,7 +7,7 @@ The basic code unit in this simulator is represented by a tuple made of 5 elemen
 `Current symbol`: the symbol on tape which the head needs to read, each tape cell contains `-` by default    
 `New state`: the state the machine transitions to when both `Current state` and `Current symbol` are verified  
 `New symbol`: the symbol written on the cell at the tape head when both `Current state` and `Current symbol` are verified  
-`Movement`: the direction the machine will move when both `Current state` and `Current symbol` are verified, it can be either `>` (right movement), `<` (left movement) or `-` (stay)  
+`Movement`: the direction the machine will move when both `Current state` and `Current symbol` are verified, it can be either `>` (right movement), `<` (left movement) or `-` (no movement)  
 
 Take this tuple as an example:
 ```
@@ -15,7 +15,7 @@ Take this tuple as an example:
 ```  
 It follows this logic: if the machine is in the state `move1` and the head reads the symbol `-`, set the machine state as `move2` and overwrite the symbol with `.`, then move the tape to the right (`>`)  
 
-Since the machine follows a specific order to check the tuples, having two tuples with the same `Current state` and `Current symbol` but different `New state`, `New symbol` or `Movement` will lead to a behaviour based on the position of the tuples in the code. This is what's called a non-deterministic scenario because the machine should give the same output no matter what the order of the tuples in the code is.
+Since the machine follows a specific order to check the tuples, having two tuples with the same `Current state` and `Current symbol` but different `New state`, `New symbol` or `Movement` will lead to a behaviour based on the position of the tuples in the code. This is what's called a non-deterministic scenario because the machine should give the same output no matter what the order of the tuples in the code are.
 
 On the other hand duplicate tuples are allowed, but it's recommended to just keep a single copy of each tuple in the code even if the result is still deterministic.
 
@@ -64,7 +64,7 @@ Could be represented with this one tuple:
 ``` 
 This doesn't imply that the two sets of symbols needs to be identical because when expanding the tuple, the first `Current symbol` is matched with the first `New symbol` and so on.  
 
-The only limitation is that they both need to have the same number of symbols or `New symbol` has only 1 symbol (and not the other way around, else the machine wil be non-deterministic).
+The only limitation is that they both need to have the same number of symbols or `New symbol` has only 1 symbol (and not the other way around, otherwise the machine wil be non-deterministic).
 
 Here's an example using different symbols sets:
 ```
@@ -112,13 +112,13 @@ Can become even more compressed:
 ``` 
 It's also possible to concatenate multiple double dot notation one after another or append letters before and after. In this way these tuples:
 ```
-(skip, .-, skip, .-, <)
+(skip, -, skip, -, <)
 (skip, abcdef, skip, abcdef, <)
 (skip, 012345, skip, 012345, <)
 ```  
 Can be written as this single tuple:
 ```
-(skip, .-a..f0..5, move, .-a..f0..5, <)
+(skip, -a..f0..5, move, -a..f0..5, <)
 ```
 Obviously numbers and letters cannot be mixed up with this notation as the two characters needs to be of the same type and in ascending order (numerical or alphabetical). Anything else that is neither a letter nor a number is invalid.
 
@@ -177,9 +177,9 @@ It's even possible to use both types of classes in a single tuple (or a class ty
 
 Take this tuple as an example:
 ```
-(move_[a..z], 0..9, move_[a..z], 0..9, <)
+(move_[a..z], {0..9}, move_[a..z], {0..9}, <)
 ```
-It will be expanded in every possible combination of the class symbol and `Current symbol`/`New symbol`. So the expansion will result in this tuples:
+It will be expanded in every possible combination of the class symbol and `Current symbol`/`New symbol`. So the expansion will result in these tuples:
 ```
 (move_a, 0, move_a, 0, <)
 (move_a, 1, move_a, 1, <)
