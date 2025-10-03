@@ -1,6 +1,6 @@
 # Turing Machine Simulator
 
-A Turing Machine Simulator coded in Python from scratch by me. It uses a terminal interface to show what the machine is doing.
+A Turing Machine Simulator coded in Python from scratch by me. It uses a terminal interface to show what the machine is doing. See also the [GUI](https://github.com/ir-trevi/TM-simulator/tree/GUI) version of the simulator.
 
 <img width="1538" height="823" alt="turing simulator 2" src="https://github.com/user-attachments/assets/6ee778df-ca1a-4100-8fbe-b5238f3cf35d" />
 
@@ -14,7 +14,7 @@ It shares the [syntax](syntax.md) and a similar interface with Vittorio Gambalet
 ## Run the script
 First, install the module running this command:
 ```
-pip install git+https://github.com/ir-trevi/TM-simulator
+pip install git+https://github.com/ir-trevi/TM-simulator@terminal
 ```
 Then you can use this command to run the simulator:
 ```
