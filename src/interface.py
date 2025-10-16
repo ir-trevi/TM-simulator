@@ -4,6 +4,17 @@ class Interface:
 
     def __init__(self, state: str, input_tape: str, steps: int, view_code: list[tuple[bool, str]], view_tape: str, global_var: dict, 
                  writing: bool = False, status_bar: str = "Simulating... (Press \"space\" to pause)") -> None:
+        r"""
+        Creates a new instance of ``Interface``.
+
+        ``state`` is the current state of the machine, ``input_tape`` represents the initial tape input for the user,
+        ``steps`` is number of steps executed, ``view_code`` is a list of tuples to display taken as they are from the file,
+        ``global_var`` keeps all the global variables, ``writing`` tells if the machine is writing to a cell on the tape and
+        ``status_bar`` is the message displayed in the bottom part of the window
+
+        When the interface is initiated it runs ``show()``
+        """
+
         self.state = state
         self.input_tape = input_tape
         self.steps = steps
@@ -15,6 +26,12 @@ class Interface:
         self.show()
 
     def show(self) -> None:
+        r"""
+        Prints the interface based on the current values of the machine.
+        It buffers the whole string representing the interface and prints it all at once at the end.
+        Previous interfaces printed are not deleted to avoid flashing images due to the high refresh frequency.
+        """
+
         def show_code(index: int, arrow: bool) -> str:
             return (f" {'->' if arrow else '  '} {'!' if self.view_code[index - 3][0] else ' '}"
                     f" {self.view_code[index - 3][1]}").ljust(self.global_var["code_size"] - 1)[:self.global_var["code_size"] - 1] + "║\n"

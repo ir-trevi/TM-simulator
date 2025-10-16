@@ -8,6 +8,16 @@ class TuringMachine:
 
     def __init__(self, input_tape: str, code: list[TuringTuple], breakpoints_list: list[bool], raw_code: list[str],
                  code_map: list[int], pars_errors: list, global_var: dict) -> None:
+        r"""
+        Creates a new instance of ``TuringMachine`` based on the parsed tuples in ``code``.
+
+        ``input_tape`` is the starting tape, ``breakpoints_list`` represents the indexes of the breakpoints,
+        ``raw_code`` is the code as it is in the file, ``code_map`` maps all the expanded tuples back to the original raw_tuple,
+        ``pars_errors`` represents all the errors in the parsing process and ``global_var`` keeps all the global variables
+
+        When the machine is initiated it runs ``_check_determinism()``
+        """
+
         self.global_var = global_var
         self.input_tape = input_tape
         self.code = code
@@ -38,6 +48,7 @@ class TuringMachine:
                 exit()
 
     def _check_determinism(self) -> None:
+        r"""Scans the code to find any non-deterministic combination of tuples, adding any error to ``self.pars_errors``"""
         dictionary = {}
         for element in self.code:
             current_param = (element.current_state, element.current_symbol)
@@ -58,6 +69,7 @@ class TuringMachine:
                 self.pars_errors.append((index_list, 'non_deterministic'))
 
     def _get_error_message(self) -> str:
+        r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""
         error_code = self.pars_errors[0][1]
         multiple_lines = isinstance(self.pars_errors[0][0], list)
         error_lines = ", ".join(list(dict.fromkeys([str(self.code_map[i]) for i in self.pars_errors[0][0]]))[:5]) if multiple_lines else self.pars_errors[0][0]
@@ -98,6 +110,7 @@ class TuringMachine:
         return error_message
 
     def _get_view_code(self, index: int, direct: bool = False) -> list[tuple[bool, str]]:
+        r"""Returns the visible part of the code to be displayed"""
         return_list = []
         code_height = tuple(os.get_terminal_size())[1] - 6
         code_index = self.code_map[index] if not direct else index
@@ -112,6 +125,7 @@ class TuringMachine:
         return return_list
 
     def _get_view_tape(self) -> str:
+        r"""Returns the visible part of the tape to be displayed"""
         return_string = ""
         for i in range(self.tape_position - self.global_var["tape_size"] // 2, self.tape_position + self.global_var["tape_size"] // 2 + 1):
             try:
@@ -123,6 +137,7 @@ class TuringMachine:
         return return_string
 
     def _remapped_char(self, char: str) -> str:
+        r"""Returns the escaped version of ``char`` if ``char`` is a special char"""
         special_view_chars = [' ', '\\', '-', '(', ')', '^', ',', '#', '[', ']', '{', '}']
         special_code_char = ['-', '\\\\', '\\-', '\\(', '\\)', '\\^', '\\,', '\\#', '\\[', '\\]', '\\{', '\\}']
         current_char = char
@@ -131,10 +146,12 @@ class TuringMachine:
         return current_char
 
     def pause(self) -> None:
+        r"""Pauses or resumes the simulation"""
         if not self.silent and not self.error and not self.ended:
             self.paused = not self.paused
 
     def move_right(self) -> None:
+        r"""Moves the tape to the right if ``self.ended``, else it steps forward once"""
         if self.silent or self.error:
             return None
         elif self.paused:
@@ -148,6 +165,12 @@ class TuringMachine:
             self.tape_position += 1
 
     def move_left(self) -> None:
+        r"""
+        Moves the tape to the left if ``self.ended``, else it steps back once.
+
+        Since stepping backward in a turing machine will lead to non-deterministic results, this functions runs a new instance
+        of ``TuringMachine`` up to a step before the main one, then sets the main ``TuringMachine`` variables to the other ones.
+        """
         if self.silent or self.error:
             return None
         elif self.paused:
@@ -167,17 +190,20 @@ class TuringMachine:
             self.tape_position -= 1
 
     def change_speed(self, value: int) -> None:
+        r"""Changes the simulation speed to ``value``"""
         if self.paused:
             self.global_var["speed"] = 10 if value == 0 else value
 
     def terminate(self) -> None:
+        r"""Terminates the simulation"""
+        keyboard.send("enter")  # used to add \n to the input buffer
         keyboard.send("enter")
-        keyboard.send("enter")
-        input()
+        input()  # fetch the buffer up to the first \n
         input()
         os._exit(0)
 
     def restart(self) -> None:
+        r"""Resets all the parameters and restarts the simulation"""
         if self.paused or self.ended:
             time.sleep(0.1)
             self.steps = 0
@@ -188,6 +214,10 @@ class TuringMachine:
             self.paused = True
 
     def step(self, stepping: bool = False) -> None:
+        r"""
+        Steps the machine forward once, updating its status and displaying the changes to the interface (if selected).
+        ``stepping`` is used when the machine is manually stepped by the user (``move_right``).
+        """
         if self.error:
             self.error.show()
             return None

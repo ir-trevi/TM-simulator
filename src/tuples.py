@@ -1,6 +1,14 @@
 class TuringTuple:
 
     def __init__(self, string_tuple: str, index: int, raw_string: bool = False) -> None:
+        r"""
+        Creates a new instance of ``TuringTuple`` based on ``string_tuple``.
+        ``index`` is the index of the tuple in the code and ``raw_string`` tells parsed and not parsed tuples apart
+
+        If ``raw_string`` is True, it runs ``expand()`` returning a list of parsed strings, else it splits ``string_tuple``
+        in ``current_state``, ``current_symbol``, ``new_state``, ``new_symbol`` and ``movement``
+        """
+
         self.raw_string = raw_string
         self.string_tuple = string_tuple
         self.index = index
@@ -12,6 +20,15 @@ class TuringTuple:
             self.expanded_tuple = self.expand()
 
     def _split(self, input_string: str, split_char: str, special_char: str) -> list[str]:
+        r"""
+        Splits ``input_string`` on each occurrence of non-escaped ``split_char``.
+        ``special_char`` can be used to escape ``split_char`` or itself.
+
+        Returns a list of all the substrings (without non-escaped ``split_char``)
+
+        _split("a,b\\,c,d,e\\,f", ",", "\\") -> ["a", "b\\,c", "d", "e\\,f"]
+        """
+
         if split_char not in input_string:
             return [input_string]
         index = 0
@@ -26,6 +43,15 @@ class TuringTuple:
         return [input_string[:index - 1]] + self._split(input_string[index:], split_char, special_char)
 
     def _split_each(self, input_string: str, special_char: str) -> list[str]:
+        r"""
+        Splits ``input_string`` on each non-escaped character.
+        ``special_char`` can be used to escape a character.
+
+        Returns a list of all the substrings (characters or ``special_char`` and a character)
+
+        _split_each("a\\bc\\def", "\\") -> ["a", "\\b", "c", "\\d", "e", "f"]
+        """
+
         if special_char not in input_string:
             return [x for x in input_string]
         buffer_string = ""
@@ -41,6 +67,15 @@ class TuringTuple:
 
     def _find(self, input_string: str, start_char: str, end_char: str, special_start_char: str, special_end_char: str,
               start_included: bool, end_included: bool) -> str:
+        r"""
+        Extract a substring from ``input_string`` limited from the leftmost ``start_char`` and rightmost ``end_char``.
+        Each ``start_char`` escaped by ``special_start_char`` or ``end_char`` escaped by ``end_start_char`` is ignored.
+
+        Returns the substring with or without ``start_char`` and ``end_char`` based on ``end_included`` and ``end_included``
+
+        _find("a_bcd.e\\.f", "_", ".", "\\", "\\", True, False) -> "_bcd"
+        """
+
         if start_char not in input_string or end_char not in input_string:
             return ''
         start_index = 0
@@ -68,6 +103,15 @@ class TuringTuple:
             return input_string[start_index:char_found_index]
 
     def _count(self, input_string: str, count_char: str, special_char: str) -> int:
+        r"""
+        Counts the number of non-escaped ``count_char`` in ``input_string``.
+        ``special_char`` can be used to escape ``count_char`` or itself; other characters are ignored.
+
+        Returns the number number of non-escaped ``count_char`` found
+
+        _count("a.b..c\\.\\.d..e\\.f.", ".", "\\") -> 6
+        """
+
         counter = 0
         index = 0
         while index < len(input_string):
@@ -79,10 +123,19 @@ class TuringTuple:
             index += 1
         return counter
 
-    def _remove_comment(self) -> None:
+    def _remove_comment(self, input_string: str) -> str:
+        r"""
+        Removes comment from ``input_string``.
+        Comments are defined as everything after the first non-escaped ``#``, itself included.
+
+        Returns a string without comments or ``input_string`` itself if no comments are found
+
+        _remove_comment("(0,-,1,\\#,>) # heheha :)") -> "(0,-,1,\\#,>) "
+        """
+
         buffer_string = ""
         skip_char = False
-        for char in self.string_tuple:
+        for char in input_string:
             if char != "\\" and char != "#":
                 buffer_string += char
             elif skip_char:
@@ -93,9 +146,18 @@ class TuringTuple:
                 skip_char = True
             elif char == "#" and not skip_char:
                 break
-        self.string_tuple = buffer_string
+        return buffer_string
 
     def _double_dot_expansion(self, input_string: str) -> str:
+        r"""
+        Expands any double dot notation found in ``input_string``.
+        Check syntax.md to learn more about double dot notation.
+
+        Returns the expanded version of ``input_string`` or itself if no double dot notation is found.
+
+        _double_dot_expansion("ac..f1..36") -> "acdef1236"
+        """
+
         if '..' not in input_string:
             return input_string
         double_dot_count = input_string.count('..')
@@ -138,6 +200,15 @@ class TuringTuple:
         return ''.join(merged_list) + input_string
 
     def _exclusion_expansion(self, input_string: str) -> str:
+        r"""
+        Expands any exclusion notation found in ``input_string``.
+        Check syntax.md to learn more about exclusion notation.
+
+        Returns the expanded version of ``input_string`` or itself if no exclusion notation is found.
+
+        _exclusion_expansion("^abc456") -> "defghijklmnopqrstuvwxyz012389*" where * represents all the symbols
+        """
+
         special_char = '\\-()^,#[]{}'
         normal_char = '-abcdefghijklmnopqrstuvwxyz0123456789!?£$%&|§:_.\"\'=*+;<>/@'
         exception_string = self._find(input_string, '^', input_string[-1], '\\', '', start_included=False,
@@ -158,6 +229,16 @@ class TuringTuple:
         return normal_char + '\\' + '\\'.join(special_char)
 
     def _class_expansion(self, input_string: str) -> list[list[str], int]:
+        r"""
+        Expands any class notation found in ``input_string``.
+        Check syntax.md to learn more about class notation.
+
+        Returns a list of two elements: a list with all the strings that expands from the class notation and a value
+        that identifies the type of class.
+
+        _class_expansion("ab[0123]f") -> [["ab0f", "ab1f", "ab2f", "ab3f"], 1]
+        """
+
         class1_start_count = self._count(input_string, '[', '\\')
         class1_end_count = self._count(input_string, ']', '\\')
         class2_start_count = self._count(input_string, '{', '\\')
@@ -188,9 +269,18 @@ class TuringTuple:
         return [return_list, class_type]
 
     def expand(self) -> list[str]:
+        r"""
+        Expands a ``self.string_tuple`` into all the possible tuples.
+
+        Returns a list of all the tuples with ``current_symbol``, ``new_symbol`` and ``movement`` of length 1.
+
+        self.string_tuple = "(f[01], abc, g, [01], >)"
+
+        expand() -> ["(f0,a,g,0,>)", "(f0,b,g,0,>)", "(f0,c,g,0,>)", "(f1,a,g,1,>)", "(f1,b,g,1,>)", "(f1,c,g,1,>)"]
+        """
+
         try:
-            self._remove_comment()
-            self.string_tuple = self.string_tuple.lower().replace(" ", "")
+            self.string_tuple = self._remove_comment(self.string_tuple).lower().replace(" ", "")
             if self.string_tuple == "":
                 return [""]
             if self.string_tuple[0] != "(" and self.string_tuple[:2] != "!(":
@@ -259,6 +349,14 @@ class TuringTuple:
             return ["(0,0,0,0,0)"]
 
     def has_breakpoint(self) -> bool:
+        r"""
+        Checks if ``self.string_tuple`` has a breakpoint ``!``.
+
+        Returns True if `self.string_tuple`` has a breakpoint, False otherwise
+
+        self.string_tuple = "!(0,-,1,-,>)"
+        has_breakpoint() -> True
+        """
         if self.string_tuple == "":
             return False
         if self.string_tuple.strip()[0] == "!":
