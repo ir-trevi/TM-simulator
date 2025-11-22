@@ -94,7 +94,7 @@ def main():
         code_map.extend([i for _ in parsed_tuples])
         breakpoint_list.append(TuringTuple(raw_tuple, i, True).has_breakpoint())
     turing_machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map, pars_errors, global_var)
-    keyboard.on_press_key("q", lambda _: turing_machine.terminate())
+    keyboard.on_press_key("q", lambda _: turing_machine.terminate()) if not global_var["instant"] else None
     if not global_var["instant"]:
         keyboard.on_press_key("space", lambda _: turing_machine.pause())
         keyboard.on_press_key("right", lambda _: turing_machine.move_right())
@@ -106,6 +106,7 @@ def main():
         while True:
             turing_machine.step()
     except KeyboardInterrupt:
+        print()
         exit()
 
 if __name__ == "__main__":

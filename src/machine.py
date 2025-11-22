@@ -1,6 +1,5 @@
 import os
 import time
-import keyboard
 from tuples import TuringTuple
 from interface import Interface
 
@@ -35,6 +34,9 @@ class TuringMachine:
         self._prec_index = 0
         self._first_view = True
         self.pars_errors = pars_errors
+        self.last_time = time.time()
+        self.last_steps = 0
+        self.steps_sec = "       0 steps/s"
         self._check_determinism() if not self.silent else None
         if len(self.pars_errors) != 0:
             is_direct = isinstance(self.pars_errors[0][0], list)
@@ -196,6 +198,7 @@ class TuringMachine:
 
     def terminate(self) -> None:
         r"""Terminates the simulation"""
+        import keyboard
         keyboard.send("enter")  # used to add \n to the input buffer
         keyboard.send("enter")
         input()  # fetch the buffer up to the first \n
@@ -242,19 +245,24 @@ class TuringMachine:
                     return None
         if self.global_var["instant"]:
             if self.ended:
-                print(f"\n\nSteps: {self.steps}    Output: {''.join(self.tape).strip().upper()}")
+                print("\rSimulation ended!"
+                      f"\n\nSteps: {self.steps}    State: {self.state}    Output: {''.join(self.tape).strip().upper()}")
                 exit()
             else:
+                if time.time() - self.last_time > 1:
+                    self.steps_sec = f"       {(self.steps - self.last_steps) / (time.time() - self.last_time):.0f} steps/s".ljust(40)
+                    self.last_steps = self.steps
+                    self.last_time = time.time()
                 threshold = 100000
-                simulating_string = "Simulating... ─"
+                simulating_string = "Simulating... "
                 if self.steps == 0:
-                    print(f"\n{simulating_string}", end='', flush=True)
+                    print(f"\n{simulating_string + '─' + self.steps_sec}", end='', flush=True)
                 elif self.steps == threshold:
-                    info_string = "This program might be stuck in an infinite loop. To stop the simulation press \"q\""
-                    print(f"\r{info_string}\n{simulating_string}", end='', flush=True)
-                elif self.steps % (mod := 4000) == 0:
+                    info_string = "This program might be stuck in an infinite loop. To stop the simulation press \"Ctrl + C\""
+                    print(f"\r{info_string}\n{simulating_string + '─' + self.steps_sec}", end='', flush=True)
+                if self.steps % (mod := 4000) == 0:
                     print_char = ['─', '\\', '|', '/'][(self.steps % (mod * 4)) // mod]
-                    print(f"\b{print_char}", end='', flush=True)
+                    print(f"\r{simulating_string + print_char + self.steps_sec}", end='', flush=True)
         self.steps += 1
         self.tape[self.tape_position] = self._remapped_char(self.code[i].new_symbol)
         if not self.global_var["instant"] and not self.silent:
