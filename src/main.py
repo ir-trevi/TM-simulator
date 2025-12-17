@@ -1,6 +1,5 @@
 import os
 import argparse
-import keyboard
 from tuples import TuringTuple
 from machine import TuringMachine
 
@@ -23,10 +22,11 @@ def main():
     arg_parser.add_argument("--breakpoints", "-b", dest="breakpoints", help="enable the breakpoints, pausing the simulation when one is encountered", action="store_true")
     arg_parser.add_argument("--instant", "-i", dest="instant", help="return the final tape when the machine stops, without the interface", action="store_true")
     arg_parser.add_argument("--auto", "-a", dest="auto", help="finds the best interface options based on the terminal size", action="store_true")
+    arg_parser.add_argument("--keyboard", "-k", dest="keyboard", help="enables keyboard to control the simulation (still buggy)", action="store_true")
     arg_parser.add_argument("--slim", dest="slim", help="make the cells in the tape smaller, useful when the terminal window is small", action="store_true")
     arg_parser.add_argument("--csize", dest="csize", metavar="<int>", type=int, help="set the size of the left code panel, measured in characters", default=None)
     arg_parser.add_argument("--tsize", dest="tsize", metavar="<int>", type=int, help="set the number of cells visible on the tape", default=None)
-    arg_parser.usage = ("tm-simulator [filename <path>] [input <string>] [-s | --speed <int>] [-b | --breakpoints] [-i | --instant] [-a | --auto] [--slim] [--csize <int>] [--tsize <int>] \n"
+    arg_parser.usage = ("tm-simulator [filename <path>] [input <string>] [-s | --speed <int>] [-b | --breakpoints] [-i | --instant] [-a | --auto] [-k | --keyboard] [--slim] [--csize <int>] [--tsize <int>] \n"
                         "usage: tm-simulator [-h | --help] ")
     args = arg_parser.parse_args()
     global_var["debug"] = args.debug
@@ -36,6 +36,7 @@ def main():
     global_var["slim_tape"] = args.slim
     global_var["breakpoints"] = args.breakpoints
     global_var["instant"] = args.instant
+    global_var["keyboard"] = args.keyboard
     auto = args.auto
     filename = args.filename
     input_tape = args.input if args.input else " "
@@ -94,8 +95,9 @@ def main():
         code_map.extend([i for _ in parsed_tuples])
         breakpoint_list.append(TuringTuple(raw_tuple, i, True).has_breakpoint())
     turing_machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map, pars_errors, global_var)
-    keyboard.on_press_key("q", lambda _: turing_machine.terminate()) if not global_var["instant"] else None
-    if not global_var["instant"]:
+    if not global_var["instant"] and global_var["keyboard"]:
+        import keyboard
+        keyboard.on_press_key("q", lambda _: turing_machine.terminate()) if not global_var["instant"] else None
         keyboard.on_press_key("space", lambda _: turing_machine.pause())
         keyboard.on_press_key("right", lambda _: turing_machine.move_right())
         keyboard.on_press_key("left", lambda _: turing_machine.move_left())

@@ -27,12 +27,12 @@ class TuringMachine:
         self.tape_position = 0
         self.tape = list(input_tape)
         self.steps = 0
-        self.paused = True
+        self.paused = global_var["keyboard"]
         self.ended = False
         self.silent = False
         self.error = None
-        self._prec_index = 0
-        self._first_view = True
+        self.prec_index = 0
+        self.first_view = True
         self.pars_errors = pars_errors
         self.last_time = time.time()
         self.last_steps = 0
@@ -184,7 +184,7 @@ class TuringMachine:
             self.tape_position = back_machine.tape_position
             self.tape = back_machine.tape
             self.steps = back_machine.steps
-            self._prec_index = back_machine._prec_index
+            self.prec_index = back_machine.prec_index
         elif self.ended:
             if self.tape_position == 0:
                 self.tape = [" "] + self.tape
@@ -224,6 +224,35 @@ class TuringMachine:
         if self.error:
             self.error.show()
             return None
+        if self.ended and not (self.global_var["keyboard"] or self.global_var["instant"]):
+            interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self.prec_index),
+                                  self._get_view_tape(), self.global_var, status_bar="Simulation ended!")
+            start_pos = self.tape.index(''.join(self.tape).strip()[0])
+            skip = True
+            while self.tape_position > start_pos:
+                skip = False
+                self.move_left()
+                interface.view_tape = self._get_view_tape()
+                interface.show()
+                self.tape_position -= 1
+                time.sleep(0.3)
+            interface.view_tape = self._get_view_tape()
+            interface.show()
+            time.sleep(2) if skip else None
+            end_pos = self.tape.index(''.join(self.tape).strip()[-1])
+            while self.tape_position < end_pos:
+                self.move_right()
+                interface.view_tape = self._get_view_tape()
+                interface.show()
+                self.tape_position += 1
+                time.sleep(0.3)
+            interface.view_tape = self._get_view_tape()
+            interface.show()
+            time.sleep(5)
+            os.system("cls" if os.name == "nt" else "clear")
+            print("\rSimulation ended!"
+                  f"\n\nSteps: {self.steps}    State: {self.state}    Output: {''.join(self.tape).strip().upper()}", flush=True)
+            exit()
         if ((self.paused and not stepping) or self.ended) and not self.global_var["instant"] and not self.silent:
             if self.steps == 0:
                 status_message = "Press \"space\" to start the simulation"
@@ -231,7 +260,7 @@ class TuringMachine:
                 status_message = "Simulation paused! (Press \"space\" to resume)"
             else:
                 status_message = "Simulation ended! (Press \"q\" to exit)"
-            Interface(self.state, self.input_tape, self.steps, self._get_view_code(self._prec_index), self._get_view_tape(),
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(self.prec_index), self._get_view_tape(),
                       self.global_var, status_bar=status_message)
             return None
         sleep_time = 1 / self.global_var["speed"] - 0.1
@@ -265,6 +294,10 @@ class TuringMachine:
                     print(f"\r{simulating_string + print_char + self.steps_sec}", end='', flush=True)
         self.steps += 1
         self.tape[self.tape_position] = self._remapped_char(self.code[i].new_symbol)
+        if self.first_view and not (self.global_var["instant"] or self.global_var["keyboard"]):
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), self.global_var)
+            time.sleep(2)
+            self.first_view = False
         if not self.global_var["instant"] and not self.silent:
             Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), self.global_var, writing=True)
             time.sleep(sleep_time)
@@ -272,7 +305,7 @@ class TuringMachine:
         if not self.global_var["instant"] and not self.silent:
             Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), self.global_var)
             time.sleep(sleep_time)
-        self._prec_index = i
+        self.prec_index = i
         if self.tape_position == 0:
             self.tape = [" "] + self.tape
             self.tape_position += 1
