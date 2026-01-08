@@ -13,7 +13,7 @@ Take this tuple as an example:
 ```
 (move1, -, move2, ., >)
 ```  
-It follows this logic: if the machine is in the state `move1` and the head reads the symbol `-`, set the machine state as `move2` and overwrite the symbol with `.`, then move the tape to the right (`>`)  
+It follows this logic: if the machine is in the state `move1` and the head reads the symbol `-`, set the machine state as `move2` and overwrite the symbol with `.`, then move the tape to the right (`>`). The machine will eventually halt if no `Current state` `Current symbol` pair in all the tuples matches the one of the machine.  
 
 Since the machine follows a specific order to check the tuples, having two tuples with the same `Current state` and `Current symbol` but different `New state`, `New symbol` or `Movement` will lead to a behaviour based on the position of the tuples in the code. This is what's called a non-deterministic scenario because the machine should give the same output no matter what the order of the tuples in the code are.
 

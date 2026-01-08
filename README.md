@@ -21,13 +21,14 @@ Then you can use this command to run the simulator:
 tm-simulator [filename <file>] [input <string>] -a
 ```
 - `filename`: the name of the `.txt` program file that contains the tuples
-- `input`: the initial state of the machine tape
+- `input`: the initial state of the machine tape. To start the machine with an empty tape just put `""` as the argument
 
 There are also some optional arguments:
 - `--speed | -s <int>`: set the step speed of the simulation, in a range from `1` to `10`, default is `9`
 - `--breakpoints | -b`: enable the breakpoints, pausing the simulation when one is encountered
 - `--instant | -i`: return the final tape when the machine stops, without the interface
 - `--auto | -a`: finds the best interface options based on the terminal size
+- `--keyboard | -k`: enable the keyboard to control the machines. It is **not** recommended to use it since the module it is based on is a bit buggy and not maintained anymore 
 - `--slim`: make the cells in the tape smaller, useful when the terminal window is small
 - `--csize <int>`: set the size of the left code panel, measured in characters. It can also be set to `0` and no code will be displayed
 - `--tsize <int>`: set the number of cells visible on the tape
@@ -38,7 +39,7 @@ When `--auto | -a` is selected it will overwrite all the other settings (`--csiz
 When `--instant | -i` is selected, all the other interface-related setting will be discarded.
 
 ## Use the simulator
-Without `--instant | -i` selected, when the command to run the simulator is entered, the interface shows up and the simulation is `paused`. There are 3 possible states of the simulator:
+With `--keyboard | -k` selected, when the command to run the simulator is entered, the interface shows up and the simulation is `paused`. There are 3 possible states of the simulator:
 - `Running`: in this state the simulator can be paused only by pressing the `spacebar`
 - `Paused`: in this state there are some actions available such as:
   - changing the speed, using the numbers from `1` to `9` and `0` (where `0` represents speed `10`)
@@ -47,7 +48,9 @@ Without `--instant | -i` selected, when the command to run the simulator is ente
   - restarting the simulation with `r`
 - `Ended`: in this state it's possible to either restarting the simulation with `r` or moving the tape left or right with `left arrow key` and `right arrow key`
 
-At any moment (even with `--instant | -i` selected) the simulator can be exited pressing `q`.
+You can quit the simulator at any moment with `q` (only with `--keyboard | -k` selected) or `Ctrl+C`
+
+If you have selected the normal interface (neither `--keyboard | -k` nor `--instant | -i`), when the simulation ends, after waiting a couple of seconds, the tape will be scrolled all to the right and then all to the left to all the content on it.
 
 ## Simulator syntax
 Check my extensive [guide](syntax.md) on the syntax of this simulator, where you can find all the information you need.

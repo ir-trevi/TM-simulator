@@ -2,8 +2,8 @@ import os
 
 class Interface:
 
-    def __init__(self, state: str, input_tape: str, steps: int, view_code: list[tuple[bool, str]], view_tape: str, global_var: dict, 
-                 writing: bool = False, status_bar: str = "Simulating... (Press \"space\" to pause)") -> None:
+    def __init__(self, state: str, input_tape: str, steps: int, view_code: list[tuple[bool, str]], view_tape: str,
+                 global_var: dict, writing: bool = False, status_bar: str = None) -> None:
         r"""
         Creates a new instance of ``Interface``.
 
@@ -22,7 +22,7 @@ class Interface:
         self.view_tape = view_tape
         self.writing = writing
         self.global_var = global_var
-        self.status_bar = status_bar
+        self.status_bar = f"Simulating... (Press \"{'space' if self.global_var['keyboard'] else 'Ctrl+C'}\" to pause)" if not status_bar else status_bar
         self.show()
 
     def show(self) -> None:

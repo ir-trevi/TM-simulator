@@ -138,6 +138,7 @@ class TuringTuple:
         for char in input_string:
             if char != "\\" and char != "#":
                 buffer_string += char
+                skip_char = False
             elif skip_char:
                 buffer_string += char
                 skip_char = False
@@ -264,7 +265,7 @@ class TuringTuple:
         first_part = input_string[:class_start_index - 1]
         last_part = input_string[class_end_index + 1:]
         return_list = []
-        for character in class_string:
+        for character in self._split_each(class_string, "\\"):
             return_list.append(first_part + character + last_part)
         return [return_list, class_type]
 
@@ -301,9 +302,9 @@ class TuringTuple:
             if (not all([len(x) == 1 or (len(x) == 2 and x[0] == "\\") for x in current_symbol]) and len(current_symbol) != 1) or \
                (not all([len(x) == 1 or (len(x) == 2 and x[0] == "\\") for x in new_symbol]) and len(new_symbol) != 1):
                 self.pars_errors.append((self.index, 'multiple_symbols'))
-            current_symbol = self._split_each(current_symbol[0], "\\") if len(current_symbol[0]) != 1 else current_symbol
-            new_symbol = self._split_each(new_symbol[0], "\\") if len(new_symbol[0]) != 1 else new_symbol
-            movement = self._split_each(movement[0], "\\") if len(movement[0]) != 1 else movement
+            current_symbol = self._split_each(current_symbol[0], "\\") if len(current_symbol) == 1 else current_symbol
+            new_symbol = self._split_each(new_symbol[0], "\\") if len(new_symbol) == 1 else new_symbol
+            movement = self._split_each(movement[0], "\\") if len(movement) == 1 else movement
             split_expanded_tuple[1][0] = current_symbol
             split_expanded_tuple[3][0] = new_symbol
             split_expanded_tuple[4][0] = movement

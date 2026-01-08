@@ -27,16 +27,16 @@ class TuringMachine:
         self.tape_position = 0
         self.tape = list(input_tape)
         self.steps = 0
-        self.paused = True
+        self.paused = global_var["keyboard"]
         self.ended = False
         self.silent = False
         self.error = None
-        self._prec_index = 0
-        self._first_view = True
+        self.prec_index = 0
+        self.first_view = True
         self.pars_errors = pars_errors
         self.last_time = time.time()
         self.last_steps = 0
-        self.steps_sec = "       0 steps/s"
+        self.steps_sec = ""
         self._check_determinism() if not self.silent else None
         if len(self.pars_errors) != 0:
             is_direct = isinstance(self.pars_errors[0][0], list)
@@ -73,7 +73,7 @@ class TuringMachine:
     def _get_error_message(self) -> str:
         r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""
         error_code = self.pars_errors[0][1]
-        multiple_lines = isinstance(self.pars_errors[0][0], list)
+        multiple_lines = isinstance(self.pars_errors[0][0], list) and len(self.pars_errors[0][0]) > 1
         error_lines = ", ".join(list(dict.fromkeys([str(self.code_map[i]) for i in self.pars_errors[0][0]]))[:5]) if multiple_lines else self.pars_errors[0][0]
         error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
         match error_code:
@@ -106,10 +106,11 @@ class TuringMachine:
             case 'closing_char_missing':
                 error_message += 'the closing char \')\' is missing'
             case 'non_deterministic':
-                error_message += 'these tuples will lead to non-deterministic behaviour'
+                error_message += (f'{"these" if multiple_lines else "this"} tuple {"s" if multiple_lines else ""} '
+                                  'will lead to non-deterministic behaviour')
             case _:
                 error_message += 'an unspecified error occurred'
-        return error_message
+        return error_message + f" (Press \"{'q' if self.global_var['keyboard'] else 'Ctrl+C'}\" to quit)"
 
     def _get_view_code(self, index: int, direct: bool = False) -> list[tuple[bool, str]]:
         r"""Returns the visible part of the code to be displayed"""
@@ -184,7 +185,7 @@ class TuringMachine:
             self.tape_position = back_machine.tape_position
             self.tape = back_machine.tape
             self.steps = back_machine.steps
-            self._prec_index = back_machine._prec_index
+            self.prec_index = back_machine.prec_index
         elif self.ended:
             if self.tape_position == 0:
                 self.tape = [" "] + self.tape
@@ -221,17 +222,48 @@ class TuringMachine:
         Steps the machine forward once, updating its status and displaying the changes to the interface (if selected).
         ``stepping`` is used when the machine is manually stepped by the user (``move_right``).
         """
+        if self.global_var["debug"]:
+            exit()
         if self.error:
             self.error.show()
             return None
+        #if self.ended and not (self.global_var["keyboard"] or self.global_var["instant"]):
+        #    interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self.prec_index),
+        #                          self._get_view_tape(), self.global_var, status_bar="Simulation ended!")
+        #    start_pos = self.tape.index(''.join(self.tape).strip()[0])
+        #    skip = True
+        #    while self.tape_position > start_pos:
+        #        skip = False
+        #        self.move_left()
+        #        interface.view_tape = self._get_view_tape()
+        #        interface.show()
+        #        self.tape_position -= 1
+        #        time.sleep(0.3)
+        #    interface.view_tape = self._get_view_tape()
+        #    interface.show()
+        #    time.sleep(2) if skip else None
+        #    end_pos = self.tape.index(''.join(self.tape).strip()[-1])
+        #    while self.tape_position < end_pos:
+        #        self.move_right()
+        #        interface.view_tape = self._get_view_tape()
+        #        interface.show()
+        #        self.tape_position += 1
+        #        time.sleep(0.3)
+        #    interface.view_tape = self._get_view_tape()
+        #    interface.show()
+        #    time.sleep(5)
+        #    os.system("cls" if os.name == "nt" else "clear")
+        #    print("\rSimulation ended!"
+        #          f"\n\nSteps: {self.steps}    State: {self.state}    Output: {''.join(self.tape).strip().upper()}", flush=True)
+        #    exit()
         if ((self.paused and not stepping) or self.ended) and not self.global_var["instant"] and not self.silent:
             if self.steps == 0:
                 status_message = "Press \"space\" to start the simulation"
             elif self.paused:
                 status_message = "Simulation paused! (Press \"space\" to resume)"
             else:
-                status_message = "Simulation ended! (Press \"q\" to exit)"
-            Interface(self.state, self.input_tape, self.steps, self._get_view_code(self._prec_index), self._get_view_tape(),
+                status_message = f"Simulation ended! (Press \"{'q' if self.global_var['keyboard'] else 'Ctrl+C'}\" to quit)"
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(self.prec_index), self._get_view_tape(),
                       self.global_var, status_bar=status_message)
             return None
         sleep_time = 1 / self.global_var["speed"] - 0.1
@@ -250,9 +282,10 @@ class TuringMachine:
                 exit()
             else:
                 if time.time() - self.last_time > 1:
-                    self.steps_sec = f"       {(self.steps - self.last_steps) / (time.time() - self.last_time):.0f} steps/s".ljust(40)
-                    self.last_steps = self.steps
+                    steps_second = (self.steps - self.last_steps) / (time.time() - self.last_time)
+                    self.steps_sec = f"       {steps_second:.0f} steps/s".ljust(40) if steps_second else ""
                     self.last_time = time.time()
+                    self.last_steps = self.steps
                 threshold = 100000
                 simulating_string = "Simulating... "
                 if self.steps == 0:
@@ -265,6 +298,10 @@ class TuringMachine:
                     print(f"\r{simulating_string + print_char + self.steps_sec}", end='', flush=True)
         self.steps += 1
         self.tape[self.tape_position] = self._remapped_char(self.code[i].new_symbol)
+        if self.first_view and not (self.global_var["instant"] or self.global_var["keyboard"]):
+            Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), self.global_var)
+            time.sleep(2)
+            self.first_view = False
         if not self.global_var["instant"] and not self.silent:
             Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), self.global_var, writing=True)
             time.sleep(sleep_time)
@@ -272,7 +309,7 @@ class TuringMachine:
         if not self.global_var["instant"] and not self.silent:
             Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), self.global_var)
             time.sleep(sleep_time)
-        self._prec_index = i
+        self.prec_index = i
         if self.tape_position == 0:
             self.tape = [" "] + self.tape
             self.tape_position += 1
@@ -287,3 +324,4 @@ class TuringMachine:
             time.sleep(sleep_time)
             if self.breakpoints_list[self.code_map[i]] and self.global_var["breakpoints"] and not self.paused and not self.silent:
                 self.pause()
+        return None

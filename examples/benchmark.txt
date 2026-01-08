@@ -1,0 +1,7 @@
+# This is not an example file
+# The only usage is to test the speed of the simulator
+# Run this with -i flag (or --instant) to see the steps/s count
+# Run it with only a dot on the tape as the input
+# This program will run infinitely so you have to stop it
+
+(0,.,0,.,-)
