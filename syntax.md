@@ -15,7 +15,7 @@ Take this tuple as an example:
 ```  
 It follows this logic: if the machine is in the state `move1` and the head reads the symbol `-`, set the machine state as `move2` and overwrite the symbol with `.`, then move the tape to the right (`>`). The machine will eventually halt if no `Current state` `Current symbol` pair in all the tuples matches the one of the machine.  
 
-Since the machine follows a specific order to check the tuples, having two tuples with the same `Current state` and `Current symbol` but different `New state`, `New symbol` or `Movement` will lead to a behaviour based on the position of the tuples in the code. This is what's called a non-deterministic scenario because the machine should give the same output no matter what the order of the tuples in the code are.
+Since the machine follows a specific order to check the tuples, having two tuples with the same `Current state` and `Current symbol` but different `New state`, `New symbol` or `Movement` will lead to a behaviour based on the position of the tuples in the code. This is what's called a non-deterministic scenario because the machine should give the same output no matter what the order of the tuples in the code is.
 
 On the other hand duplicate tuples are allowed, but it's recommended to just keep a single copy of each tuple in the code even if the result is still deterministic.
 
@@ -44,7 +44,7 @@ Some characters cannot be use directly neither as symbols nor as characters in t
 - Hash sign `#`
 - Circumflex `^`
 - Hyphen `-` (without escaping it represents an empty space on the tape)
-- The backslash itself `\ `
+- The backslash itself `\`
 
 ### Multiple symbols notation
 It is possible to use multiple symbols in the `Current symbol` or `New symbol` element to compress multiple similar tuples into one. This is possible because those two elements are not limited to a single symbol, instead they can accept multiple symbols.
@@ -140,7 +140,7 @@ Unlike the double dot notation that can be combined with others symbols, the exc
 When using this notation it's highly recommended to use the same set of excluded symbols on both `Current symbol` or `New symbol` to avoid unexpected (but deterministic) behaviours or use it only on `Current symbol` with a single symbol for `New symbol`.
 
 ### Class notation
-This notation is the most powerful as it's the only one that allows the creation of a set with different symbols that can be interpreted as `Current state` or `New state`, as well as all the other tuple elements. 
+This notation is the most powerful one as it's the only one that allows the creation of a set with different symbols that can be interpreted as `Current state` or `New state`, as well as all the other tuple elements. 
 
 There are two types of classes identified by this two types of brackets, independent of each other:
 - Square brackets `[]`
