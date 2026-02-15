@@ -131,9 +131,9 @@ Take this tuple with exclusion notation as an example:
 ```
 (delete, ^abc, delete, -, <)
 ``` 
-It will be expanded to this tuple (where `*` represents all the special characters):
+It will be expanded to this tuple:
 ```
-(delete, defghijklmnopqrstuvwxyz0123456789*, delete, -, <)
+(delete, -defghijklmnopqrstuvwxyz0123456789!?£$%&|§:_.\"\'=*+;<>/@, delete, -, <)
 ```
 Unlike the double dot notation that can be combined with others symbols, the exclusion notation needs to be used without any symbols before the `^`. 
 

@@ -19,7 +19,6 @@
 (letto[0..9],^$,letto[0..9],^$,<)
 (letto[0..9],$,letto[0..9]_,$,<)
 
-# N.B. il contatore si azzera durante il processo perché decrementato fino a 0
 (letto[1..9]_,0..9,letto[0..8]_,0..9,<)
 (letto0_,[0..9],contatore0_[0..9],[0..9],<)
 

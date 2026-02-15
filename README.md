@@ -20,18 +20,18 @@ Then you can use this command to run the simulator:
 ```
 tm-simulator [filename <file>] [input <string>] -a
 ```
-- `filename`: the name of the `.txt` program file that contains the tuples
-- `input`: the initial state of the machine tape. It's better to enclose the input in quotes (single or doubles), like this `"myinput"`
+- `filename`: the name of the `.txt` program file that contains the tuples that define the machine behaviour
+- `input`: the characters on the initial tape. It's better to enclose the input in quotes (single or doubles)
 
 There are also some optional arguments:
-- `--speed | -s <int>`: set the step speed of the simulation, in a range from `1` to `10`, default is `9`
-- `--breakpoints | -b`: enable the breakpoints, pausing the simulation when one is encountered
-- `--instant | -i`: return the final tape when the machine stops, without the interface
+- `--speed | -s <int>`: sets the step speed of the simulation, in a range from `1` to `10`, default is `9`
+- `--breakpoints | -b`: enables the breakpoints, pausing the simulation when one is encountered
+- `--instant | -i`: returns the final tape when the machine stops, without the interface
 - `--auto | -a`: finds the best interface options based on the terminal size
-- `--keyboard | -k`: enable the keyboard to control the machines. It is **not** recommended to use it since the module it is based on is a bit buggy and not maintained anymore 
-- `--slim`: make the cells in the tape smaller, useful when the terminal window is small
-- `--csize <int>`: set the size of the left code panel, measured in characters. It can also be set to `0` and no code will be displayed
-- `--tsize <int>`: set the number of cells visible on the tape
+- `--keyboard | -k`: enables the keyboard controls for the machine. It is **NOT** recommended to use it since the module it is based on is a bit buggy and not maintained anymore 
+- `--slim`: makes the cells in the tape smaller, useful when the terminal window is small
+- `--csize <int>`: sets the size of the left code panel, measured in characters. It can also be sets to `0` and no code will be displayed
+- `--tsize <int>`: sets the number of cells visible on the tape
 
 Either `--auto | -a` or both `--csize <int>` and `--tsize <int>` need to be included in the command.  
 When `--auto | -a` is selected it will overwrite all the other settings (`--csize`, `--tsize`, `--slim`) except when `--csize` is `0` to disable code.
@@ -50,9 +50,7 @@ With `--keyboard | -k` selected, when the command to run the simulator is entere
 
 You can quit the simulator at any moment with `q` (only with `--keyboard | -k` selected) or `Ctrl+C`
 
-If you have selected the normal interface (neither `--keyboard | -k` nor `--instant | -i`), when the simulation ends, after waiting a couple of seconds, the tape will be scrolled all to the right and then all to the left to all the content on it.
-
 ## Simulator syntax
-Check my extensive [guide](syntax.md) on the syntax of this simulator, where you can find all the information you need.
+Check out my extensive [guide](syntax.md) on the syntax of this simulator, where you can find all the information you need.
 
 In the [examples](examples) folder you can find some programs I've made, ranging from easy to hard, that you can run on the simulator.
