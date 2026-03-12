@@ -39,7 +39,7 @@ def main():
     global_var["keyboard"] = args.keyboard
     auto = args.auto
     filename = args.filename
-    input_tape = args.input if args.input else " "
+    input_tape = args.input.lower() if args.input else " "
 
     if global_var["speed"] < 1 or global_var["speed"] > 10:
         print("The simulation speed is not within the range")

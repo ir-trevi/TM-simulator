@@ -73,8 +73,9 @@ class TuringMachine:
     def _get_error_message(self) -> str:
         r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""
         error_code = self.pars_errors[0][1]
-        multiple_lines = isinstance(self.pars_errors[0][0], list) and len(self.pars_errors[0][0]) > 1
-        error_lines = ", ".join(list(dict.fromkeys([str(self.code_map[i]) for i in self.pars_errors[0][0]]))[:5]) if multiple_lines else self.pars_errors[0][0]
+        line_error_list = list(dict.fromkeys([str(self.code_map[i] + 1) for i in self.pars_errors[0][0]]))[:5]
+        multiple_lines = len(line_error_list) > 1
+        error_lines = ", ".join(line_error_list) if multiple_lines else line_error_list[0]
         error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
         match error_code:
             case 'incompatible_dot_limiters':
@@ -106,11 +107,12 @@ class TuringMachine:
             case 'closing_char_missing':
                 error_message += 'the closing char \')\' is missing'
             case 'non_deterministic':
-                error_message += (f'{"these" if multiple_lines else "this"} tuple {"s" if multiple_lines else ""} '
+                error_message += (f'{"these" if multiple_lines else "this"} tuple{"s" if multiple_lines else ""} '
                                   'will lead to non-deterministic behaviour')
             case _:
                 error_message += 'an unspecified error occurred'
-        return error_message + f" (Press \"{'q' if self.global_var['keyboard'] else 'Ctrl+C'}\" to quit)"
+        return error_message + f" (Press \"{'q' if self.global_var['keyboard'] else 'Ctrl+C'}\" to quit)" if not \
+               self.global_var['instant'] else error_message
 
     def _get_view_code(self, index: int, direct: bool = False) -> list[tuple[bool, str]]:
         r"""Returns the visible part of the code to be displayed"""
