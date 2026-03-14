@@ -181,11 +181,11 @@ class TuringTuple:
             current_char = expression[0]
             notation_end_char = expression[-1]
             if current_char.isalpha() != notation_end_char.isalpha():
-                self.pars_errors.append((self.index, 'incompatible_dot_limiters'))
+                self.pars_errors.append(([self.index], 'incompatible_dot_limiters'))
             elif not current_char.isalnum() or not notation_end_char.isalnum():
-                self.pars_errors.append((self.index, 'symbol_dot_limiter'))
+                self.pars_errors.append(([self.index], 'symbol_dot_limiter'))
             elif ord(current_char) > ord(notation_end_char):
-                self.pars_errors.append((self.index, 'descending_order'))
+                self.pars_errors.append(([self.index], 'descending_order'))
             elif current_char != '.' or notation_end_char != '.':
                 ord_current_char = ord(current_char)
                 ord_notation_end = ord(notation_end_char)
@@ -247,17 +247,17 @@ class TuringTuple:
         if class1_start_count == class1_end_count == 0 and class2_start_count == class2_end_count == 0:
             return [[input_string], 0]
         elif input_string == '[]' or input_string == '{}':
-            self.pars_errors.append((self.index, 'empty_class'))
+            self.pars_errors.append(([self.index], 'empty_class'))
         elif class1_start_count != class1_end_count or class2_start_count != class2_end_count:
-            self.pars_errors.append((self.index, 'missing_class_limiters'))
+            self.pars_errors.append(([self.index], 'missing_class_limiters'))
         elif class1_start_count > 1 or class1_end_count > 1 or class2_start_count > 1 or class2_end_count > 1:
-            self.pars_errors.append((self.index, 'multiple_class'))
+            self.pars_errors.append(([self.index], 'multiple_class'))
         class_string1 = self._find(input_string, '[', ']', '\\', '\\', start_included=False, end_included=False)
         class_string2 = self._find(input_string, '{', '}', '\\', '\\', start_included=False, end_included=False)
         if class1_start_count != 0 and class2_start_count != 0:
-            self.pars_errors.append((self.index, 'multiple_class_types'))
+            self.pars_errors.append(([self.index], 'multiple_class_types'))
         elif not class_string1 and not class_string2:
-            self.pars_errors.append((self.index, 'empty_class'))
+            self.pars_errors.append(([self.index], 'empty_class'))
         class_type = 1 if class_string1 else 2
         class_string = class_string1 if class_string1 else class_string2
         class_start_index = input_string.find(class_string)
@@ -285,15 +285,15 @@ class TuringTuple:
             if self.string_tuple == "":
                 return [""]
             if self.string_tuple[0] != "(" and self.string_tuple[:2] != "!(":
-                self.pars_errors.append((self.index, 'opening_char_missing'))
+                self.pars_errors.append(([self.index], 'opening_char_missing'))
             if self.string_tuple[-1] != ")":
-                self.pars_errors.append((self.index, 'closing_char_missing'))
+                self.pars_errors.append(([self.index], 'closing_char_missing'))
             clean_tuple = self._find(self.string_tuple, "(", ")", "\\", "\\", start_included=False, end_included=False)
             split_tuple = self._split(clean_tuple, ",", "\\")
             if len(split_tuple) != 5:
-                self.pars_errors.append((self.index, 'incorrect_arguments_amount'))
+                self.pars_errors.append(([self.index], 'incorrect_arguments_amount'))
             if not all([bool(x) for x in split_tuple]):
-                self.pars_errors.append((self.index, 'empty_rule'))
+                self.pars_errors.append(([self.index], 'empty_rule'))
             split_tuple = [self._exclusion_expansion(self._double_dot_expansion(x)) for x in split_tuple]
             split_expanded_tuple = [self._class_expansion(x) for x in split_tuple]
             current_symbol = split_expanded_tuple[1][0]
@@ -301,7 +301,7 @@ class TuringTuple:
             movement = split_expanded_tuple[4][0]
             if (not all([len(x) == 1 or (len(x) == 2 and x[0] == "\\") for x in current_symbol]) and len(current_symbol) != 1) or \
                (not all([len(x) == 1 or (len(x) == 2 and x[0] == "\\") for x in new_symbol]) and len(new_symbol) != 1):
-                self.pars_errors.append((self.index, 'multiple_symbols'))
+                self.pars_errors.append(([self.index], 'multiple_symbols'))
             current_symbol = self._split_each(current_symbol[0], "\\") if len(current_symbol) == 1 else current_symbol
             new_symbol = self._split_each(new_symbol[0], "\\") if len(new_symbol) == 1 else new_symbol
             movement = self._split_each(movement[0], "\\") if len(movement) == 1 else movement
@@ -310,7 +310,7 @@ class TuringTuple:
             split_expanded_tuple[4][0] = movement
             current_state, _, new_state, _, _ = [x[0] for x in split_expanded_tuple]
             if not all([x in [">", "<", "-"] for x in movement]):
-                self.pars_errors.append((self.index, 'unrecognised_movement'))
+                self.pars_errors.append(([self.index], 'unrecognised_movement'))
             class_0_elements = [x for x in split_expanded_tuple if x[1] == 0]
             class_1_elements = [x for x in split_expanded_tuple if x[1] == 1]
             class_2_elements = [x for x in split_expanded_tuple if x[1] == 2]
@@ -323,7 +323,7 @@ class TuringTuple:
             if not all([len(x[0]) == max_len_class_2 or len(x[0]) == 1 for x in class_2_elements]) or \
                not all([len(x[0]) == max_len_class_1 or len(x[0]) == 1 for x in class_1_elements]) or \
                not all([len(x[0]) == max_len_class_0 or len(x[0]) == 1 for x in class_0_elements]):
-                self.pars_errors.append((self.index, 'different_class_sizes'))
+                self.pars_errors.append(([self.index], 'different_class_sizes'))
             return_list = []
             for i_2 in range(max_len_class_2):
                 current_state_loop = current_state[i_2 if len(current_state) != 1 else 0] if class_2[0] else None

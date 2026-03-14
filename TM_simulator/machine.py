@@ -1,12 +1,78 @@
 import os
 import time
-from tuples import TuringTuple
-from interface import Interface
+from .tuples import TuringTuple
+from .interface import Interface
+
+def _get_error_message(pars_errors, is_instant: bool, is_keyboard: bool) -> str:
+    r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""
+    error_code = pars_errors[0][1]
+    multiple_lines = len(pars_errors[0][0]) > 1
+    line_error_list = list(dict.fromkeys([str(i + 1) for i in pars_errors[0][0]]))[:5] if multiple_lines \
+                      else pars_errors[0][0]
+    error_lines = ", ".join(line_error_list) if multiple_lines else line_error_list[0]
+    error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
+    match error_code:
+        case 'incompatible_dot_limiters':
+            error_message += 'the characters limiting the dot notation are not of the same time'
+        case 'descending_order':
+            error_message += 'the characters limiting the dot notation are in ascending order'
+        case 'symbol_dot_limiter':
+            error_message += 'the characters limiting the dot notation are symbols'
+        case 'missing_class_limiters':
+            error_message += 'a bracket enclosing the class is missing'
+        case 'empty_class':
+            error_message += 'the class is empty'
+        case 'multiple_class_types':
+            error_message += 'there are different class types in the same rule element'
+        case 'multiple_class':
+            error_message += 'there are multiple classes in the same rule element'
+        case 'empty_rule':
+            error_message += 'a rule element is empty'
+        case 'unrecognised_movement':
+            error_message += 'the movement is not one of the three (\'<\', \'>\', \'-\')'
+        case 'different_class_sizes':
+            error_message += 'the classes have different sizes'
+        case 'multiple_symbols':
+            error_message += 'there are multiple characters as the character to read/write'
+        case 'incorrect_arguments_amount':
+            error_message += 'a rule element is missing'
+        case 'opening_char_missing':
+            error_message += 'the opening char \'(\' is missing'
+        case 'closing_char_missing':
+            error_message += 'the closing char \')\' is missing'
+        case 'non_deterministic':
+            error_message += (f'{"these" if multiple_lines else "this"} tuple{"s" if multiple_lines else ""} '
+                              'will lead to non-deterministic behaviour')
+        case _:
+            error_message += 'an unspecified error occurred'
+    return error_message + f" (Press \"{'q' if is_keyboard else 'Ctrl+C'}\" to quit)" if not is_instant else error_message
+
+def _check_determinism(parsed_code) -> list:
+    r"""Scans the code to find any non-deterministic combination of tuples, adding any error to ``self.pars_errors``"""
+    dictionary = {}
+    for element in parsed_code:
+        current_param = (element.current_state, element.current_symbol)
+        new_param = (element.new_state, element.new_symbol, element.movement)
+        if current_param not in dictionary:
+            dictionary.update({current_param: [new_param]})
+        else:
+            dictionary[current_param].append(new_param)
+    pars_errors = []
+    for current_param, new_param_list in list(dictionary.items()):
+        if len(list(dict.fromkeys(new_param_list))) != 1:
+            index_list = []
+            for i, element in enumerate(parsed_code):
+                for new_param in new_param_list:
+                    if (element.current_state, element.current_symbol) == current_param and \
+                            (element.new_state, element.new_symbol, element.movement) != new_param:
+                        index_list.append(i)
+            pars_errors.append((index_list, 'non_deterministic'))
+    return pars_errors
 
 class TuringMachine:
 
-    def __init__(self, input_tape: str, code: list[TuringTuple], breakpoints_list: list[bool], raw_code: list[str],
-                 code_map: list[int], pars_errors: list, global_var: dict) -> None:
+    def __init__(self, input_tape: str, code: list[TuringTuple], breakpoints_list: list[bool], remapped_breakpoints_list: list[bool],
+                 raw_code: list[str], code_map: list[int], pars_errors: list, global_var: dict) -> None:
         r"""
         Creates a new instance of ``TuringMachine`` based on the parsed tuples in ``code``.
 
@@ -23,6 +89,7 @@ class TuringMachine:
         self.raw_code = raw_code
         self.code_map = code_map
         self.breakpoints_list = breakpoints_list
+        self.remapped_breakpoints_list = remapped_breakpoints_list
         self.state = "0"
         self.tape_position = 0
         self.tape = list(input_tape)
@@ -37,82 +104,17 @@ class TuringMachine:
         self.last_time = time.time()
         self.last_steps = 0
         self.steps_sec = ""
-        self._check_determinism() if not self.silent else None
+        self.pars_errors.extend(_check_determinism(code)) if not self.silent else None
         if len(self.pars_errors) != 0:
             is_direct = isinstance(self.pars_errors[0][0], list)
             error_line = self.pars_errors[0][0][0] if is_direct else self.pars_errors[0][0]
             if not self.global_var["instant"]:
                 error_interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, not is_direct),
-                                            self._get_view_tape(), self.global_var, False, self._get_error_message())
+                                            self._get_view_tape(), self.global_var, False, _get_error_message(pars_errors, global_var["instant"], global_var["keyboard"]))
                 self.error = error_interface
             else:
-                print(self._get_error_message())
+                print(_get_error_message(pars_errors, global_var["instant"], global_var["keyboard"]))
                 exit()
-
-    def _check_determinism(self) -> None:
-        r"""Scans the code to find any non-deterministic combination of tuples, adding any error to ``self.pars_errors``"""
-        dictionary = {}
-        for element in self.code:
-            current_param = (element.current_state, element.current_symbol)
-            new_param = (element.new_state, element.new_symbol, element.movement)
-            if current_param not in dictionary:
-                dictionary.update({current_param: [new_param]})
-            else:
-                dictionary[current_param].append(new_param)
-
-        for current_param, new_param_list in list(dictionary.items()):
-            if len(list(dict.fromkeys(new_param_list))) != 1:
-                index_list = []
-                for i, element in enumerate(self.code):
-                    for new_param in new_param_list:
-                        if (element.current_state, element.current_symbol) == current_param and \
-                           (element.new_state, element.new_symbol, element.movement) != new_param:
-                            index_list.append(i)
-                self.pars_errors.append((index_list, 'non_deterministic'))
-
-    def _get_error_message(self) -> str:
-        r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""
-        error_code = self.pars_errors[0][1]
-        line_error_list = list(dict.fromkeys([str(self.code_map[i] + 1) for i in self.pars_errors[0][0]]))[:5]
-        multiple_lines = len(line_error_list) > 1
-        error_lines = ", ".join(line_error_list) if multiple_lines else line_error_list[0]
-        error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
-        match error_code:
-            case 'incompatible_dot_limiters':
-                error_message += 'the characters limiting the dot notation are not of the same time'
-            case 'descending_order':
-                error_message += 'the characters limiting the dot notation are in ascending order'
-            case 'symbol_dot_limiter':
-                error_message += 'the characters limiting the dot notation are symbols'
-            case 'missing_class_limiters':
-                error_message += 'a bracket enclosing the class is missing'
-            case 'empty_class':
-                error_message += 'the class is empty'
-            case 'multiple_class_types':
-                error_message += 'there are different class types in the same rule element'
-            case 'multiple_class':
-                error_message += 'there are multiple classes in the same rule element'
-            case 'empty_rule':
-                error_message += 'a rule element is empty'
-            case 'unrecognised_movement':
-                error_message += 'the movement is not one of the three (\'<\', \'>\', \'-\')'
-            case 'different_class_sizes':
-                error_message += 'the classes have different sizes'
-            case 'multiple_symbols':
-                error_message += 'there are multiple characters as the character to read/write'
-            case 'incorrect_arguments_amount':
-                error_message += 'a rule element is missing'
-            case 'opening_char_missing':
-                error_message += 'the opening char \'(\' is missing'
-            case 'closing_char_missing':
-                error_message += 'the closing char \')\' is missing'
-            case 'non_deterministic':
-                error_message += (f'{"these" if multiple_lines else "this"} tuple{"s" if multiple_lines else ""} '
-                                  'will lead to non-deterministic behaviour')
-            case _:
-                error_message += 'an unspecified error occurred'
-        return error_message + f" (Press \"{'q' if self.global_var['keyboard'] else 'Ctrl+C'}\" to quit)" if not \
-               self.global_var['instant'] else error_message
 
     def _get_view_code(self, index: int, direct: bool = False) -> list[tuple[bool, str]]:
         r"""Returns the visible part of the code to be displayed"""
@@ -179,7 +181,7 @@ class TuringMachine:
         if self.silent or self.error:
             return None
         elif self.paused:
-            back_machine = TuringMachine(self.input_tape, self.code, self.breakpoints_list, self.raw_code, self.code_map, self.pars_errors, self.global_var)
+            back_machine = TuringMachine(self.input_tape, self.code, self.breakpoints_list, self.remapped_breakpoints_list, self.raw_code, self.code_map, self.pars_errors, self.global_var)
             back_machine.silent = True
             while back_machine.steps < self.steps - 1:
                 back_machine.step()
@@ -277,7 +279,7 @@ class TuringMachine:
                 if i == len(self.code):
                     self.ended = True
                     return None
-        if self.global_var["instant"]:
+        if self.global_var["instant"] and not self.silent:
             if self.ended:
                 print("\rSimulation ended!"
                       f"\n\nSteps: {self.steps}    State: {self.state}    Output: {''.join(self.tape).strip().upper()}")
@@ -324,6 +326,6 @@ class TuringMachine:
         if not self.global_var["instant"] and not self.silent:
             Interface(self.state, self.input_tape, self.steps, self._get_view_code(i), self._get_view_tape(), self.global_var)
             time.sleep(sleep_time)
-            if self.breakpoints_list[self.code_map[i]] and self.global_var["breakpoints"] and not self.paused and not self.silent:
-                self.pause()
+        if self.remapped_breakpoints_list[i] and self.global_var["breakpoints"] and not self.paused:
+            self.paused = True
         return None

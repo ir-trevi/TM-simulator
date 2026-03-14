@@ -1,9 +1,9 @@
 import os
 import argparse
-from tuples import TuringTuple
-from machine import TuringMachine
+from .tuples import TuringTuple
+from .machine import TuringMachine
 
-def main():
+def setup_cli():
     global_var = {"speed": 0,
                   "tape_size": 0,
                   "code_size": 0,
@@ -47,6 +47,9 @@ def main():
     if not (auto or (global_var["code_size"] or global_var["tape_size"]) or global_var["instant"]):
         print("Either auto mode or the specific sizes needs to be specified")
         exit()
+    if global_var["keyboard"] and global_var["instant"]:
+        print("You cannot use both keyboard mode and instant mode at the same time")
+        exit()
     if not global_var["instant"] and not global_var["debug"]:
         try:
             length, height = tuple(os.get_terminal_size())
@@ -76,16 +79,24 @@ def main():
                 global_var["tape_size"] = 33
                 global_var["code_size"] = length // 4 if global_var["code_size"] != 0 else 0
 
-    try:
-        with open(filename) as file:
-            raw_tuples = [x.removesuffix('\n') for x in file]
-    except FileNotFoundError:
-        print("The file with the program was not found (paths are not supported, change directory and then run the script there)")
-        exit()
+    return global_var, filename, input_tape
+
+
+def parse(input_string: str, is_file: bool = True):
+    if is_file:
+        try:
+            with open(input_string) as file:
+                raw_tuples = [x.removesuffix('\n') for x in file]
+        except FileNotFoundError:
+            print("The file with the program was not found")
+            exit()
+    else:
+        raw_tuples = input_string
 
     code_tuples = []
     code_map = []
     breakpoint_list = []
+    remapped_breakpoint_list = []
     pars_errors = []
     for i, raw_tuple in enumerate(raw_tuples):
         parsed_tuples = TuringTuple(raw_tuple, i, True)
@@ -94,22 +105,26 @@ def main():
         code_tuples.extend([TuringTuple(x, i, False) for x in parsed_tuples])
         code_map.extend([i for _ in parsed_tuples])
         breakpoint_list.append(TuringTuple(raw_tuple, i, True).has_breakpoint())
-    turing_machine = TuringMachine(input_tape, code_tuples, breakpoint_list, raw_tuples, code_map, pars_errors, global_var)
+        remapped_breakpoint_list.extend([breakpoint_list[-1]] * len(parsed_tuples))
+
+    return code_tuples, breakpoint_list, remapped_breakpoint_list, raw_tuples, code_map, pars_errors
+
+def main():
+    global_var, filename, input_tape = setup_cli()
+    code_tuples, breakpoint_list, remapped_breakpoint_list, raw_tuples, code_map, pars_errors = parse(filename)
+    turing_machine = TuringMachine(input_tape, code_tuples, breakpoint_list, remapped_breakpoint_list, raw_tuples,
+                                   code_map, pars_errors, global_var)
     if not global_var["instant"] and global_var["keyboard"]:
         import keyboard
         keyboard.on_press_key("q", lambda _: turing_machine.terminate()) if not global_var["instant"] else None
         keyboard.on_press_key("space", lambda _: turing_machine.pause())
         keyboard.on_press_key("right", lambda _: turing_machine.move_right())
         keyboard.on_press_key("left", lambda _: turing_machine.move_left())
-        [keyboard.on_press_key(x+1, lambda _, y=x: turing_machine.change_speed(y)) for x in range(11)[1:]]
+        [keyboard.on_press_key(x + 1, lambda _, y=x: turing_machine.change_speed(y)) for x in range(11)[1:]]
         keyboard.on_press_key("r", lambda _: turing_machine.restart())
-
     try:
         while True:
             turing_machine.step()
     except KeyboardInterrupt:
         print()
         exit()
-
-if __name__ == "__main__":
-    main()
