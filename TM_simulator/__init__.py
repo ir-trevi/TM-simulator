@@ -14,7 +14,7 @@ def parse_tuples(input_string: str, is_file: bool = True, to_print: bool = False
     pars_errors.extend(_check_determinism(code_tuples))
     if len(pars_errors) > 0:
         for error in pars_errors:
-            print(_get_error_message(error, is_instant=False, is_keyboard=False))
+            print(_get_error_message([error], is_instant=True, is_keyboard=False))
         exit()
     if to_print:
         return ["(" + x.string_tuple + ")" for x in code_tuples]
@@ -26,7 +26,7 @@ def parse_breakpoints(input_string: str, is_file: bool = True):
     pars_errors.extend(_check_determinism(code_tuples))
     if len(pars_errors) > 0:
         for error in pars_errors:
-            print(_get_error_message(error, is_instant=False, is_keyboard=False))
+            print(_get_error_message([error], is_instant=True, is_keyboard=False))
         exit()
     return remapped_breakpoint_list
 
@@ -53,7 +53,7 @@ class TuringMachine:
                   }
         self._machine = _TMachine(input_tape, parsed_tuples, [False], parsed_breakpoints, [""], [0], [], self._global_var)
         self.state = self._machine.state
-        self.tape = self._machine.tape
+        self.tape = [x for x in "".join(self._machine.tape).strip()]
         self.steps = self._machine.steps
         self.ended = self._machine.ended
         self.paused = False
@@ -70,8 +70,8 @@ class TuringMachine:
     def load_tuples(cls, parsed_tuples: list[_TMTuple], parsed_breakpoint: list[bool], input_tape: str):
         return cls(parsed_tuples, parsed_breakpoint, input_tape)
 
-    def set_run_threshold(self, value: int):
-        self.threshold = value
+    def set_threshold(self, value: int):
+        self.threshold = value if value > 0 else float("inf")
 
     def run(self):
         consecutive_steps = 0
@@ -81,14 +81,14 @@ class TuringMachine:
             self.paused = self._machine.paused
             consecutive_steps += 1
         self.state = self._machine.state
-        self.tape = self._machine.tape
+        self.tape = [x for x in "".join(self._machine.tape).strip()]
         self.steps = self._machine.steps
 
     def step(self, times: int = 1):
         for _ in range(times):
             self._machine.step()
         self.state = self._machine.state
-        self.tape = self._machine.tape
+        self.tape = [x for x in "".join(self._machine.tape).strip()]
         self.steps = self._machine.steps
         self.ended = self._machine.ended
 
@@ -100,9 +100,8 @@ class TuringMachine:
     def set_breakpoints(self, value: bool = True):
         self._machine.global_var["breakpoints"] = value
 
-    def status(self):
+    def print_status(self):
         print(f"Steps: {self.steps}    State: {self.state}    Tape: {''.join(self.tape).strip().upper()}    "
               f"Status: {'Ended' if self.ended else 'Paused'}")
 
 __all__ = [parse_tuples, parse_breakpoints, TuringMachine]
-

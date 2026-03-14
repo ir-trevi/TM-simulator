@@ -11,13 +11,13 @@ It shares the [syntax](syntax.md) and a similar interface with Vittorio Gambalet
 - Breakpoints
 - Stepping (backward and forward)
 
-## Run the script
+## Run from the command line
 First, install the module running this command:
-```
+```terminaloutput
 pip install git+https://github.com/ir-trevi/TM-simulator
 ```
 Then you can use this command to run the simulator:
-```
+```terminaloutput
 tm-simulator [filename <file>] [input <string>] -a
 ```
 - `filename`: the name of the `.txt` program file that contains the tuples that define the machine behaviour
@@ -36,9 +36,9 @@ There are also some optional arguments:
 Either `--auto | -a` or both `--csize <int>` and `--tsize <int>` need to be included in the command.  
 When `--auto | -a` is selected it will overwrite all the other settings (`--csize`, `--tsize`, `--slim`) except when `--csize` is `0` to disable code.
 
-When `--instant | -i` is selected, all the other interface-related setting will be discarded.
+When `--instant | -i` is selected, all the other interface-related setting will be discarded and it's also mutually exclusive with `--keyboard | -k`.
 
-## Use the simulator
+### Use the simulator
 With `--keyboard | -k` selected, when the command to run the simulator is entered, the interface shows up and the simulation is `paused`. There are 3 possible states of the simulator:
 - `Running`: in this state the simulator can be paused only by pressing the `spacebar`
 - `Paused`: in this state there are some actions available such as:
@@ -49,6 +49,31 @@ With `--keyboard | -k` selected, when the command to run the simulator is entere
 - `Ended`: in this state it's possible to either restarting the simulation with `r` or moving the tape left or right with `left arrow key` and `right arrow key`
 
 You can quit the simulator at any moment with `q` (only with `--keyboard | -k` selected) or `Ctrl+C`
+
+## Import the module
+You can also use this simulator by importing it as a module in your python code. This allows your code to interact and control the simulated machine. 
+
+Here's some examples of the thing you can do with it:
+
+```python
+import TM_simulator as tm
+
+filename = "bin-dec.txt"
+start_tape = "101010"
+machine = tm.TuringMachine.load_file(filename, start_tape)
+machine.step(10)
+machine.print_status()
+machine.run()
+machine.print_status()
+```
+```terminaloutput
+Output:
+
+Steps: 10   State: decrement  Tape: $101011     Status: Paused
+Steps: 710  State: end        Tape: 42          Status: Ended
+```
+
+It's also possible to get different values regarding the simulator at any point during the simulation. To get additional information on this or the other available features check the [documentation](docs.md).
 
 ## Simulator syntax
 Check out my extensive [guide](syntax.md) on the syntax of this simulator, where you can find all the information you need.

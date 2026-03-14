@@ -87,11 +87,11 @@ def parse(input_string: str, is_file: bool = True):
         try:
             with open(input_string) as file:
                 raw_tuples = [x.removesuffix('\n') for x in file]
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError) as e:
             print("The file with the program was not found")
             exit()
     else:
-        raw_tuples = input_string
+        raw_tuples = input_string.split("\n")
 
     code_tuples = []
     code_map = []
