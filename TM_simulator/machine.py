@@ -86,6 +86,10 @@ class TuringMachine:
         self.global_var = global_var
         self.input_tape = input_tape
         self.code = code
+        self.code_hashmap = {(state, char): i for (state, char, i) in zip(
+                            [self.code[x].current_state for x in range(len(code))],
+                            [self._remapped_char(self.code[x].current_symbol) for x in range(len(code))],
+                            range(len(code)))}
         self.raw_code = raw_code
         self.code_map = code_map
         self.breakpoints_list = breakpoints_list
@@ -273,12 +277,10 @@ class TuringMachine:
         sleep_time = 1 / self.global_var["speed"] - 0.1
         i = 0
         if not self.ended:
-            while self.code[i].current_state != self.state or self._remapped_char(self.code[i].current_symbol) != \
-                  self.tape[self.tape_position]:
-                i += 1
-                if i == len(self.code):
-                    self.ended = True
-                    return None
+            i = self.code_hashmap.get((self.state, self.tape[self.tape_position]))
+            if i is None:
+                self.ended = True
+                return None
         if self.global_var["instant"] and not self.silent:
             if self.ended:
                 print("\rSimulation ended!"
