@@ -72,7 +72,7 @@ This helper functions simply enables or disables the breakpoints from pausing th
 ```python
 set_threshold(value: int) -> None
 ```
-This helper functions set the maximum steps the `run` function will perform before stopping to the `value`. This is done to avoid the case where the machine gets in an infinite loop, exiting it; the default threshold value of the machine is 100.000 steps. 
+This helper functions set the maximum steps the `run` function will perform before stopping to the `value`. This is done to avoid the case where the machine gets in an infinite loop, exiting it; the default threshold value of the machine is 500.000 steps. 
 Each time the `run` function is called, the amount of steps performed in the function is set to 0 at each function call.
 
 ### Print the status
@@ -83,7 +83,7 @@ This function prints most the most important variables to understand what's the 
 
 This is the typical output of this function:
 ```terminaloutput
-Steps: 10    State: decrement    Tape: $101011    Status: Paused
+Steps: 10    State: decrement    Tape: $101011    Status: Paused    Time elapsed: 1 ms
 ```
 
 ### Variables
@@ -91,5 +91,6 @@ The variables of the machine that can be accessed during the simulation are:
 - `state: str`: the name of the state the machine is in
 - `tape: list[str]`: the used part of the tape as a list of the content of the single cells
 - `steps: int`: the number of elapsed steps since the beginning if the simulation
+- `runtime: float`: the number of seconds, rounded to the milliseconds, the machine has taken that far to run the simulation
 - `ended: bool`: whether the machine has halted the simulation
 - `paused: bool`: whether the machine is in the paused state 

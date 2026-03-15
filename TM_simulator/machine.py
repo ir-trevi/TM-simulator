@@ -113,7 +113,7 @@ class TuringMachine:
                                             self._get_view_tape(), self.global_var, False, _get_error_message(pars_errors, global_var["instant"], global_var["keyboard"]))
                 self.error = error_interface
             else:
-                print(_get_error_message(pars_errors, global_var["instant"], global_var["keyboard"]))
+                [print(_get_error_message([error], global_var["instant"], global_var["keyboard"])) for error in pars_errors]
                 exit()
 
     def _get_view_code(self, index: int, direct: bool = False) -> list[tuple[bool, str]]:

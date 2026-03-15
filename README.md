@@ -4,7 +4,7 @@ A Turing Machine Simulator coded in Python from scratch by me. It uses a termina
 
 <img width="1538" height="823" alt="turing simulator 2" src="https://github.com/user-attachments/assets/6ee778df-ca1a-4100-8fbe-b5238f3cf35d" />
 
-It shares the [syntax](syntax.md) and a similar interface with Vittorio Gambaletta's simulator ([VittGam/JSTMSimulator](https://github.com/VittGam/JSTMSimulator)), but it adds new features such as:
+It shares the syntax and a similar interface with Vittorio Gambaletta's simulator ([VittGam/JSTMSimulator](https://github.com/VittGam/JSTMSimulator)), but it adds new features such as:
 - Deterministic behaviour check
 - Faster simulation speeds
 - Instant simulation
@@ -28,7 +28,7 @@ There are also some optional arguments:
 - `--breakpoints | -b`: enables the breakpoints, pausing the simulation when one is encountered
 - `--instant | -i`: returns the final tape when the machine stops, without the interface
 - `--auto | -a`: finds the best interface options based on the terminal size
-- `--keyboard | -k`: enables the keyboard controls for the machine. It is **NOT** recommended to use it since the module it is based on is a bit buggy and not maintained anymore 
+- `--keyboard | -k`: enables the keyboard controls for the machine however it is **NOT** recommended to use it since the module it is based on is a bit buggy and not maintained anymore 
 - `--slim`: makes the cells in the tape smaller, useful when the terminal window is small
 - `--csize <int>`: sets the size of the left code panel, measured in characters. It can also be sets to `0` and no code will be displayed
 - `--tsize <int>`: sets the number of cells visible on the tape
@@ -69,8 +69,8 @@ machine.print_status()
 ```terminaloutput
 Output:
 
-Steps: 10   State: decrement  Tape: $101011     Status: Paused
-Steps: 710  State: end        Tape: 42          Status: Ended
+Steps: 10   State: decrement  Tape: $101011    Status: Paused    Time elapsed: 1 ms
+Steps: 710  State: end        Tape: 42         Status: Ended     Time elapsed: 3 ms
 ```
 
 It's also possible to get different values regarding the simulator at any point during the simulation. To get additional information on this or the other available features check the [documentation](docs.md).
