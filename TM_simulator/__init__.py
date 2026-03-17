@@ -11,10 +11,10 @@ def parse_tuples(input_string: str, is_file: bool = True, to_print: bool = False
     the argument. By default this function returns a list of TuringTuple objects, but you can set ``to_print`` to True
     to get back a print-friendly version of the parsed tuples that is however unusable in the machine.
     """
-    code_tuples, *_, pars_errors = _parse(input_string, is_file)
+    code_tuples, *_, code_map, pars_errors = _parse(input_string, is_file)
     pars_errors.extend(_check_determinism(code_tuples))
     if len(pars_errors) > 0:
-        errors = [(_get_error_message([error], is_instant=True, is_keyboard=False)) for error in pars_errors]
+        errors = [(_get_error_message([error], code_map, is_instant=True, is_keyboard=False)) for error in pars_errors]
         class ParsingError(RuntimeError):
             pass
         raise ParsingError("\nSome errors were found while parsing the input: \n" + "\n".join(errors))
@@ -30,10 +30,10 @@ def parse_breakpoints(input_string: str, is_file: bool = True) -> list[bool]:
     on the boolean ``is_file`` argument. It's recommended to read from a file though, hence the default True value of
     the argument. This function returns a list of boolean values, where ``True`` represents a breakpoint.
     """
-    code_tuples, _, remapped_breakpoint_list, *_, pars_errors = _parse(input_string, is_file)
+    code_tuples, _, remapped_breakpoint_list, *_, code_map, pars_errors = _parse(input_string, is_file)
     pars_errors.extend(_check_determinism(code_tuples))
     if len(pars_errors) > 0:
-        errors = [(_get_error_message([error], is_instant=True, is_keyboard=False)) for error in pars_errors]
+        errors = [(_get_error_message([error], code_map, is_instant=True, is_keyboard=False)) for error in pars_errors]
         class ParsingError(RuntimeError):
             pass
         raise ParsingError("Some errors were found while parsing the input: \n" + "\n".join(errors))
@@ -45,7 +45,7 @@ class TuringMachine:
     This is the main class of this module where the machine is managed. This is simply a wrapper of the base machine
     class cleaned up and remodelled to make it more user-friendly. The attributes of this class are:
      - ``state: str``: the name of the state the machine is in
-     - ``tape: list[str]``: the used part of the tape as a list of the content of the single cells
+     - ``tape: str``: the used part of the tape as a unique string
      - ``steps: int``: the number of elapsed steps since the beginning if the simulation
      - ``runtime: float``: the number of seconds, rounded to the milliseconds, the machine has taken that far to run the simulation
      - ``ended: bool``: whether the machine has halted the simulation
@@ -72,7 +72,7 @@ class TuringMachine:
                   }
         self._machine = _TMachine(input_tape, parsed_tuples, [False], parsed_breakpoints, [""], [0], [], self._global_var)
         self.state = self._machine.state
-        self.tape = [x for x in "".join(self._machine.tape).strip()]
+        self.tape = "".join(self._machine.tape).strip()
         self.steps = self._machine.steps
         self.ended = self._machine.ended
         self.paused = False
@@ -105,7 +105,8 @@ class TuringMachine:
     def set_threshold(self, value: int) -> None:
         r"""
         Sets the threshold ``value`` of steps after which the machine stops running. This is done to avoid letting a machine
-        run indefinitely on programs that might be stuck in an infinite cycle.
+        run indefinitely on programs that might be stuck in an infinite cycle. You can set ``value`` to -1 to disable the
+        threshold altogether.
         """
         self.threshold = value if value > 0 else float("inf")
 
@@ -123,9 +124,19 @@ class TuringMachine:
             self.paused = self._machine.paused
             consecutive_steps += 1
         self.state = self._machine.state
-        self.tape = [x for x in "".join(self._machine.tape).strip()]
+        self.tape = "".join(self._machine.tape).strip()
         self.steps = self._machine.steps
         self.runtime += round(time.perf_counter() - start_time, 6)
+
+    def reset(self, tape: str = None) -> None:
+        r"""
+        Resets the machine status to the initial conditions. If ``tape`` argument is provided it will overwrite the old
+        initial tape, else it will keep the same as the one declared on the class initialization.
+        """
+        self._machine.restart()
+        self._machine.tape = list(tape) if tape is not None else self._machine.tape
+        self.ended = False
+        self._machine.paused = False
 
     def step(self, times: int = 1) -> None:
         r"""
@@ -139,7 +150,7 @@ class TuringMachine:
             if self._machine.ended:
                 break
         self.state = self._machine.state
-        self.tape = [x for x in "".join(self._machine.tape).strip()]
+        self.tape = "".join(self._machine.tape).strip()
         self.steps = self._machine.steps
         self.ended = self._machine.ended
         self.runtime += round(time.perf_counter() - start_time, 6)
@@ -153,7 +164,7 @@ class TuringMachine:
         take a while.
         """
         step_goal = self.steps - times if self.steps - times > 0 else 0
-        self.__init__(self.parsed_tuples, self.parsed_breakpoints, self.input_tape)
+        self.reset()
         self.step(step_goal)
 
     def set_breakpoints(self, value: bool = True) -> None:
@@ -168,7 +179,7 @@ class TuringMachine:
         """
         formatted_runtime = (f"{self.runtime * 1000:.0f} ms" if self.runtime < 5 else f"{self.runtime:.3f} s") if \
                             self.runtime > 0.05 else f"{self.runtime * 1000:.3f} ms"
-        print(f"Steps: {self.steps}    State: {self.state}    Tape: {''.join(self.tape).strip().upper()}    "
+        print(f"Steps: {self.steps}    State: {self.state}    Tape: {self.tape.strip().upper()}    "
               f"Status: {'Ended' if self.ended else 'Paused'}    Time elapsed: {formatted_runtime}")
 
 __all__ = [parse_tuples, parse_breakpoints, TuringMachine]

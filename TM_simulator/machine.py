@@ -3,13 +3,13 @@ import time
 from .tuples import TuringTuple
 from .interface import Interface
 
-def _get_error_message(pars_errors, is_instant: bool, is_keyboard: bool) -> str:
+def _get_error_message(pars_errors, code_map, is_instant: bool, is_keyboard: bool) -> str:
     r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""
     error_code = pars_errors[0][1]
     multiple_lines = len(pars_errors[0][0]) > 1
-    line_error_list = list(dict.fromkeys([str(i + 1) for i in pars_errors[0][0]]))[:5] if multiple_lines \
+    line_error_list = list(dict.fromkeys([str(code_map[i + 1]) for i in pars_errors[0][0]]))[:5] if multiple_lines \
                       else pars_errors[0][0]
-    error_lines = ", ".join(line_error_list) if multiple_lines else line_error_list[0]
+    error_lines = ", ".join(line_error_list) if multiple_lines else line_error_list[0] + 1
     error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
     match error_code:
         case 'incompatible_dot_limiters':
@@ -113,11 +113,11 @@ class TuringMachine:
             is_direct = isinstance(self.pars_errors[0][0], list)
             error_line = self.pars_errors[0][0][0] if is_direct else self.pars_errors[0][0]
             if not self.global_var["instant"]:
-                error_interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, not is_direct),
-                                            self._get_view_tape(), self.global_var, False, _get_error_message(pars_errors, global_var["instant"], global_var["keyboard"]))
+                error_interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(error_line, is_direct),
+                                            self._get_view_tape(), self.global_var, False, _get_error_message(pars_errors, self.code_map, global_var["instant"], global_var["keyboard"]))
                 self.error = error_interface
             else:
-                [print(_get_error_message([error], global_var["instant"], global_var["keyboard"])) for error in pars_errors]
+                [print(_get_error_message([error], self.code_map, global_var["instant"], global_var["keyboard"])) for error in pars_errors]
                 exit()
 
     def _get_view_code(self, index: int, direct: bool = False) -> list[tuple[bool, str]]:
@@ -217,7 +217,7 @@ class TuringMachine:
     def restart(self) -> None:
         r"""Resets all the parameters and restarts the simulation"""
         if self.paused or self.ended:
-            time.sleep(0.1)
+            #time.sleep(0.1)
             self.steps = 0
             self.state = "0"
             self.tape = list(self.input_tape)
@@ -235,35 +235,6 @@ class TuringMachine:
         if self.error:
             self.error.show()
             return None
-        #if self.ended and not (self.global_var["keyboard"] or self.global_var["instant"]):
-        #    interface = Interface(self.state, self.input_tape, self.steps, self._get_view_code(self.prec_index),
-        #                          self._get_view_tape(), self.global_var, status_bar="Simulation ended!")
-        #    start_pos = self.tape.index(''.join(self.tape).strip()[0])
-        #    skip = True
-        #    while self.tape_position > start_pos:
-        #        skip = False
-        #        self.move_left()
-        #        interface.view_tape = self._get_view_tape()
-        #        interface.show()
-        #        self.tape_position -= 1
-        #        time.sleep(0.3)
-        #    interface.view_tape = self._get_view_tape()
-        #    interface.show()
-        #    time.sleep(2) if skip else None
-        #    end_pos = self.tape.index(''.join(self.tape).strip()[-1])
-        #    while self.tape_position < end_pos:
-        #        self.move_right()
-        #        interface.view_tape = self._get_view_tape()
-        #        interface.show()
-        #        self.tape_position += 1
-        #        time.sleep(0.3)
-        #    interface.view_tape = self._get_view_tape()
-        #    interface.show()
-        #    time.sleep(5)
-        #    os.system("cls" if os.name == "nt" else "clear")
-        #    print("\rSimulation ended!"
-        #          f"\n\nSteps: {self.steps}    State: {self.state}    Output: {''.join(self.tape).strip().upper()}", flush=True)
-        #    exit()
         if ((self.paused and not stepping) or self.ended) and not self.global_var["instant"] and not self.silent:
             if self.steps == 0:
                 status_message = "Press \"space\" to start the simulation"

@@ -50,6 +50,14 @@ run() -> None
 ```
 This function takes no input as it runs the machine indefinitely until the machine halts (or the threshold is reached, see the `set_threshold` function to more information).
 
+### Resetting the machine
+```python
+reset(self, tape: str = None) -> None:
+```
+This functions resets the machine to its initial state, setting the step counter to 0 and reloading the initial inputs. If `tape` argument is passed, the `input_tape` is changed to that value.
+
+It's highly suggested to use this function when you need to run the machine again instead of creating a new instance of the `TuringTuple` class as it would run the parse checks each time.
+
 ### Stepping the machine
 ```python
 step(times: int = 1) -> None
@@ -72,7 +80,8 @@ This helper functions simply enables or disables the breakpoints from pausing th
 ```python
 set_threshold(value: int) -> None
 ```
-This helper functions set the maximum steps the `run` function will perform before stopping to the `value`. This is done to avoid the case where the machine gets in an infinite loop, exiting it; the default threshold value of the machine is 500.000 steps. 
+This helper functions set the maximum steps the `run` function will perform before stopping to the `value`. This is done to avoid the case where the machine gets in an infinite loop, exiting it; the default threshold value of the machine is 500.000 steps. You can also set the `value` to -1 to disable the threshold altogether.
+
 Each time the `run` function is called, the amount of steps performed in the function is set to 0 at each function call.
 
 ### Print the status
@@ -89,7 +98,7 @@ Steps: 10    State: decrement    Tape: $101011    Status: Paused    Time elapsed
 ### Variables
 The variables of the machine that can be accessed during the simulation are:
 - `state: str`: the name of the state the machine is in
-- `tape: list[str]`: the used part of the tape as a list of the content of the single cells
+- `tape: str`: the used part of the tape as a unique string 
 - `steps: int`: the number of elapsed steps since the beginning if the simulation
 - `runtime: float`: the number of seconds, rounded to the milliseconds, the machine has taken that far to run the simulation
 - `ended: bool`: whether the machine has halted the simulation
