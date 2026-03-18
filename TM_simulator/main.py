@@ -126,5 +126,8 @@ def main():
         while True:
             turing_machine.step()
     except KeyboardInterrupt:
-        print()
+        os.system("cls") if os.name == "nt" else os.system("clear")
+        if turing_machine.ended:
+            print("\rSimulation ended!"
+                 f"\n\nSteps: {turing_machine.steps}    State: {turing_machine.state}    Output: {''.join(turing_machine.tape).strip().upper()}")
         exit()

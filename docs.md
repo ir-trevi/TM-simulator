@@ -80,7 +80,7 @@ This helper functions simply enables or disables the breakpoints from pausing th
 ```python
 set_threshold(value: int) -> None
 ```
-This helper functions set the maximum steps the `run` function will perform before stopping to the `value`. This is done to avoid the case where the machine gets in an infinite loop, exiting it; the default threshold value of the machine is 500.000 steps. You can also set the `value` to -1 to disable the threshold altogether.
+This helper functions set the maximum steps the `run` function will perform before stopping to the `value`. This is done to avoid the case where the machine gets in an infinite loop, exiting it; the default threshold value of the machine is 1.000.000 steps. You can also set the `value` to -1 to disable the threshold altogether.
 
 Each time the `run` function is called, the amount of steps performed in the function is set to 0 at each function call.
 

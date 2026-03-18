@@ -263,7 +263,7 @@ class TuringMachine:
                     self.steps_sec = f"       {steps_second:.0f} steps/s".ljust(40) if steps_second else ""
                     self.last_time = time.time()
                     self.last_steps = self.steps
-                threshold = 100000
+                threshold = 1_000_000
                 simulating_string = "Simulating... "
                 if self.steps == 0:
                     print(f"\n{simulating_string + '─' + self.steps_sec}", end='', flush=True)

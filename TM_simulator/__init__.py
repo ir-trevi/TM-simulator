@@ -76,7 +76,7 @@ class TuringMachine:
         self.steps = self._machine.steps
         self.ended = self._machine.ended
         self.paused = False
-        self.threshold = 500000
+        self.threshold = 1_000_000
         self._machine.silent = True
         self.runtime = 0
 
