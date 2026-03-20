@@ -58,7 +58,7 @@ class TuringMachine:
             exit()
         self.parsed_tuples = parsed_tuples
         self.parsed_breakpoints = parsed_breakpoints
-        self.input_tape = input_tape
+        self.input_tape = input_tape.lower() if input_tape else " "
         self._global_var = {
                   "speed": 10,
                   "tape_size": 30,
@@ -70,7 +70,7 @@ class TuringMachine:
                   "debug": False,
                   "keyboard": False
                   }
-        self._machine = _TMachine(input_tape, parsed_tuples, [False], parsed_breakpoints, [""], [0], [], self._global_var)
+        self._machine = _TMachine(self.input_tape, parsed_tuples, [False], parsed_breakpoints, [""], [0], [], self._global_var)
         self.state = self._machine.state
         self.tape = "".join(self._machine.tape).strip()
         self.steps = self._machine.steps
@@ -134,9 +134,11 @@ class TuringMachine:
         initial tape, else it will keep the same as the one declared on the class initialization.
         """
         self._machine.restart()
-        self._machine.tape = list(tape) if tape is not None else self._machine.tape
+        self._machine.tape = list(tape) if tape is not None else self.input_tape
         self.ended = False
         self._machine.paused = False
+        self.steps = 0
+        self.runtime = 0
 
     def step(self, times: int = 1) -> None:
         r"""

@@ -7,7 +7,7 @@ def _get_error_message(pars_errors, code_map, is_instant: bool, is_keyboard: boo
     r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""
     error_code = pars_errors[0][1]
     multiple_lines = len(pars_errors[0][0]) > 1
-    line_error_list = list(dict.fromkeys([str(code_map[i + 1]) for i in pars_errors[0][0]]))[:5] if multiple_lines \
+    line_error_list = list(dict.fromkeys([str(code_map[i] + 1) for i in pars_errors[0][0]]))[:5] if multiple_lines \
                       else pars_errors[0][0]
     error_lines = ", ".join(line_error_list) if multiple_lines else line_error_list[0] + 1
     error_message = f'Error at line{"s" if multiple_lines else ""} {error_lines}: '
