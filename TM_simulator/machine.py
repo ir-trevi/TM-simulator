@@ -1,7 +1,11 @@
 import os
 import time
-from .tuples import TuringTuple
-from .interface import Interface
+try:
+    from .tuples import TuringTuple
+    from .interface import Interface
+except ImportError:
+    from tuples import TuringTuple
+    from interface import Interface
 
 def _get_error_message(pars_errors, code_map, is_instant: bool, is_keyboard: bool) -> str:
     r"""Returns the error message based on the first error occurrence in ``self.pars_errors``"""

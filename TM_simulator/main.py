@@ -1,7 +1,11 @@
 import os
 import argparse
-from .tuples import TuringTuple
-from .machine import TuringMachine
+try:
+    from .tuples import TuringTuple
+    from .machine import TuringMachine
+except ImportError:
+    from tuples import TuringTuple
+    from machine import TuringMachine
 
 def setup_cli():
     global_var = {"speed": 0,
@@ -126,8 +130,14 @@ def main():
         while True:
             turing_machine.step()
     except KeyboardInterrupt:
-        os.system("cls") if os.name == "nt" else os.system("clear")
+        if not global_var["instant"]:
+            os.system("cls") if os.name == "nt" else os.system("clear")
+        else:
+            print()
         if turing_machine.ended:
             print("\rSimulation ended!"
                  f"\n\nSteps: {turing_machine.steps}    State: {turing_machine.state}    Output: {''.join(turing_machine.tape).strip().upper()}")
         exit()
+
+if __name__ == "__main__":
+    main()
