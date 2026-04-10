@@ -118,7 +118,7 @@ It's also possible to concatenate multiple double dot notation one after another
 ```  
 Can be written as this single tuple:
 ```
-(skip, -a..f0..5, move, -a..f0..5, <)
+(skip, -a..f0..5, skip, -a..f0..5, <)
 ```
 Obviously numbers and letters cannot be mixed up with this notation as the two characters needs to be of the same type and in ascending order (numerical or alphabetical). Anything else that is neither a letter nor a number is invalid.
 

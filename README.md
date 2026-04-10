@@ -28,7 +28,7 @@ There are also some optional arguments:
 - `--breakpoints | -b`: enables the breakpoints, pausing the simulation when one is encountered
 - `--instant | -i`: returns the final tape when the machine stops, without the interface
 - `--auto | -a`: finds the best interface options based on the terminal size
-- `--keyboard | -k`: enables the keyboard controls for the machine however it is **NOT** recommended to use it since the module it is based on is a bit buggy and not maintained anymore 
+- `--keyboard | -k`: enables the keyboard controls for the machine however, even though this enables full control of the simulation, it is not recommended to use it since the module it is based on is a bit buggy and not maintained any more 
 - `--slim`: makes the cells in the tape smaller, useful when the terminal window is small
 - `--csize <int>`: sets the size of the left code panel, measured in characters. It can also be sets to `0` and no code will be displayed
 - `--tsize <int>`: sets the number of cells visible on the tape
@@ -43,7 +43,7 @@ With `--keyboard | -k` selected, when the command to run the simulator is entere
 - `Running`: in this state the simulator can be paused only by pressing the `spacebar`
 - `Paused`: in this state there are some actions available such as:
   - changing the speed, using the numbers from `1` to `9` and `0` (where `0` represents speed `10`)
-  - stepping backward or forward, respectively with `left arrow key` and `right arrow key` (don't hold down the button!)
+  - stepping backward or forward, respectively with `left arrow key` and `right arrow key` (don't hold down the key!)
   - resuming or starting the simulation with `spacebar`
   - restarting the simulation with `r`
 - `Ended`: in this state it's possible to either restarting the simulation with `r` or moving the tape left or right with `left arrow key` and `right arrow key`
