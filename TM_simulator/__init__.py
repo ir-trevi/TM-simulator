@@ -53,7 +53,7 @@ class TuringMachine:
     """
 
     def __init__(self, parsed_tuples: list[_TMTuple], parsed_breakpoints: list[bool], input_tape: str):
-        if all([x.raw_string for x in parsed_tuples]):
+        if any([x.raw_string for x in parsed_tuples]):
             print("You can only pass a list of parsed tuples!")
             exit()
         self.parsed_tuples = parsed_tuples
@@ -134,7 +134,7 @@ class TuringMachine:
         initial tape, else it will keep the same as the one declared on the class initialization.
         """
         self._machine.restart()
-        self._machine.tape = list(tape) if tape is not None else self.input_tape
+        self._machine.tape = list(tape) if tape is not None else list(self.input_tape)
         self.ended = False
         self._machine.paused = False
         self.steps = 0
@@ -184,4 +184,4 @@ class TuringMachine:
         print(f"Steps: {self.steps}    State: {self.state}    Tape: {self.tape.strip().upper()}    "
               f"Status: {'Ended' if self.ended else 'Paused'}    Time elapsed: {formatted_runtime}")
 
-__all__ = [parse_tuples, parse_breakpoints, TuringMachine]
+__all__ = ["parse_tuples", "parse_breakpoints", "TuringMachine"]
