@@ -58,7 +58,7 @@ class TuringMachine:
             exit()
         self.parsed_tuples = parsed_tuples
         self.parsed_breakpoints = parsed_breakpoints
-        self.input_tape = input_tape.lower() if input_tape else " "
+        self.input_tape = input_tape.upper() if input_tape else " "
         self._global_var = {
                   "speed": 10,
                   "tape_size": 30,

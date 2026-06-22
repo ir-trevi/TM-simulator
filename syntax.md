@@ -15,6 +15,13 @@ Take this tuple as an example:
 ```  
 It follows this logic: if the machine is in the state `move1` and the head reads the symbol `-`, set the machine state as `move2` and overwrite the symbol with `.`, then move the tape to the right (`>`). The machine will eventually halt if no `Current state` `Current symbol` pair in all the tuples matches the one of the machine.  
 
+Both `Current state` and `New state` as well as `Current symbol` and `New symbol` are case-insensitive so all the tuples in the following example are al equivalent. Keep in mind that even though they are treated as all caps during execution, it's highly recommended to avoid writing tuples like that.
+```
+(check1, abc, check2, def, <)  
+(CHECK1, ABC, CHECK2, DEF, <)
+(Check1, AbC, ChEcK2, dEf, <)
+```  
+
 Since the machine follows a specific order to check the tuples, having two tuples with the same `Current state` and `Current symbol` but different `New state`, `New symbol` or `Movement` will lead to a behaviour based on the position of the tuples in the code. This is what's called a non-deterministic scenario because the machine should give the same output no matter what the order of the tuples in the code is.
 
 On the other hand duplicate tuples are allowed, but it's recommended to just keep a single copy of each tuple in the code even if the result is still deterministic.

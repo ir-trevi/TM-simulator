@@ -69,8 +69,8 @@ machine.print_status()
 ```terminaloutput
 Output:
 
-Steps: 10   State: decrement  Tape: $101011    Status: Paused    Time elapsed: 1 ms
-Steps: 710  State: end        Tape: 42         Status: Ended     Time elapsed: 3 ms
+Steps: 10   State: DECREMENT  Tape: $101011    Status: Paused    Time elapsed: 1 ms
+Steps: 710  State: END        Tape: 42         Status: Ended     Time elapsed: 3 ms
 ```
 
 It's also possible to get different values regarding the simulator at any point during the simulation. To get additional information on this or the other available features check the [documentation](docs.md).

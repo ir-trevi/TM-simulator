@@ -92,7 +92,7 @@ This function prints most the most important variables to understand what's the 
 
 This is the typical output of this function:
 ```terminaloutput
-Steps: 10    State: decrement    Tape: $101011    Status: Paused    Time elapsed: 1 ms
+Steps: 10    State: DECREMENT    Tape: $101011    Status: Paused    Time elapsed: 1 ms
 ```
 
 ### Variables

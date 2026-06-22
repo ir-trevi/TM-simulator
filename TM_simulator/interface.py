@@ -22,7 +22,7 @@ class Interface:
         self.view_tape = view_tape
         self.writing = writing
         self.global_var = global_var
-        self.status_bar = f"Simulating... (Press \"{'space' if self.global_var['keyboard'] else 'Ctrl+C'}\" to pause)" if not status_bar else status_bar
+        self.status_bar = f"Simulating... (Press \"{'space to pause' if self.global_var['keyboard'] else 'Ctrl+C to quit'}\")" if not status_bar else status_bar
         self.show()
 
     def show(self) -> None:

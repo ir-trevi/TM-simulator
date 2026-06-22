@@ -281,7 +281,7 @@ class TuringTuple:
         """
 
         try:
-            self.string_tuple = self._remove_comment(self.string_tuple).lower().replace(" ", "")
+            self.string_tuple = self._remove_comment(self.string_tuple).upper().replace(" ", "")
             if self.string_tuple == "":
                 return [""]
             if self.string_tuple[0] != "(" and self.string_tuple[:2] != "!(":
